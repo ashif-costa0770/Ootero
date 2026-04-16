@@ -105,16 +105,34 @@ export const verifyEmail = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    
+    const { email, password, captchaToken } = req.body;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!existingUser) {
-      return errorResponse(res, 400, "User not found");
+      return errorResponse(res, 400, "Invalid email or password");
     }
 
+    // Verify captcha
+    const response = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `secret=${process.env.GOOGLE_SECRET_KEY}&response=${captchaToken}`,
+      }
+    );
+
+    const data = await response.json();
+    console.log(data);
+    if (!data.success) {
+      return errorResponse(res, 400, "Invalid captcha");
+    }
+
+    // Verify email verification
     if (!existingUser.isVerified) {
       return res.status(403).json({
         message: "Please verify your email first",

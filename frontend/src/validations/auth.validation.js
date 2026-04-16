@@ -21,5 +21,5 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
     email: z.email({ message: "Invalid email address" }).trim().toLowerCase(),
     password: z.string().min(8, { message: "Password required" }).trim(),
-    captchaToken: z.string().min(1, { message: "Captcha required" }).trim(),
-})
+
+});
