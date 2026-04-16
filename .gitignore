@@ -1,0 +1,46 @@
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Logs & temp ---
+logs/
+temp/
+tmp/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Dependencies (frontend + backend) ---
+node_modules/
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# --- Frontend (Vite + React) — frontend/ ---
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/coverage/
+frontend/*.local
+
+# --- Backend (Node + Express + Prisma) — backend/ ---
+backend/coverage/
+backend/.nyc_output/
+
+# Prisma: keep schema + migrations tracked; ignore local SQLite files if used in dev
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# --- Editor / tooling ---
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
