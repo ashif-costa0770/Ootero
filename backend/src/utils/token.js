@@ -1,15 +1,23 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const resolveSecret = (secret) => secret || process.env.JWT_SECRET;
 
-const generateToken = (id, options = {}) => {
+export const generateToken = (id, options = {}) => {
   const { secret, expiresIn = "30d" } = options;
   return jwt.sign({ id }, resolveSecret(secret), { expiresIn });
 };
 
-const verifyToken = (token, options = {}) => {
+export const verifyToken = (token, options = {}) => {
   const { secret } = options;
   return jwt.verify(token, resolveSecret(secret));
 };
 
-export { generateToken, verifyToken };
+export function generateResetToken() {
+  const rawToken = crypto.randomBytes(32).toString("hex");
+
+  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  return { rawToken, tokenHash };
+}
+

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../assets/ootero-logo.png";
 import { toast } from "sonner";
 import { login } from "../services/auth.api";
 import { Loader2, Eye, EyeOff } from "lucide-react";
@@ -8,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../validations/auth.validation";
 import ReCAPTCHA from "react-google-recaptcha";
+import ImageLogo from "../components/common/ImageLogo";
+import RightSection from "../components/login/RightSection";
 
 const SITE_KEY = import.meta.env.VITE_GOOGLE_SITE_KEY;
 
@@ -17,7 +18,7 @@ const Login = () => {
   const [captchaValue, setCaptchaValue] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  
+
   const {
     register,
     handleSubmit,
@@ -25,11 +26,15 @@ const Login = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    shouldFocusError: false,
     defaultValues: {
       email: "",
       password: "",
     },
   });
+
+  const borderClass =
+    errors.email || errors.password ? "border-red-500" : "border-gray-300";
 
   const handleLogin = async (data) => {
     if (!captchaValue) {
@@ -61,11 +66,7 @@ const Login = () => {
         <section className="flex w-full items-center justify-center bg-[#f0f2f5] px-5 py-8 lg:w-[65%]">
           <div className="w-full max-w-[400px]">
             <div className="text-center">
-              <img
-                src={logo}
-                alt="Ootero"
-                className="w-1/2 mx-auto object-cover"
-              />
+              <ImageLogo />
             </div>
 
             <div className="mt-5 text-center">
@@ -97,7 +98,7 @@ const Login = () => {
                     type="email"
                     placeholder="Enter your email address"
                     {...register("email")}
-                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[#1a6ef5] focus:ring-2 focus:ring-[#1a6ef5]/20"
+                    className={`mt-2 w-full rounded-lg border ${borderClass} bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[#1a6ef5] focus:ring-2 focus:ring-[#1a6ef5]/20`}
                   />
                   {errors.email && (
                     <p className="text-red-500 ms-1 text-sm">
@@ -119,7 +120,7 @@ const Login = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       {...register("password")}
-                      className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-3 pr-16 text-sm outline-none transition focus:border-[#1a6ef5] focus:ring-2 focus:ring-[#1a6ef5]/20"
+                      className={`w-full rounded-lg border ${borderClass} bg-white py-2.5 pl-3 pr-16 text-sm outline-none transition focus:border-[#1a6ef5] focus:ring-2 focus:ring-[#1a6ef5]/20`}
                     />
                     <button
                       type="button"
@@ -181,21 +182,7 @@ const Login = () => {
           </div>
         </section>
 
-        <aside className="relative hidden w-[35%] flex-col justify-center overflow-hidden bg-[#0d2d8a] px-10 text-white lg:flex">
-          <div className="relative z-10 max-w-[420px]">
-            <h3 className="text-3xl font-medium leading-tight">
-              We&apos;re making changes based on your feedback
-            </h3>
-            <p className="mt-6 text-base leading-relaxed text-blue-200">
-              We&apos;ve been diligently working behind the scenes to enhance
-              the products you rely on daily, helping to drive your business
-              forward while striving to become the leading all-in-one
-              fulfillment platform for small to medium-sized businesses.
-            </p>
-          </div>
-          <div className="pointer-events-none absolute -bottom-28 -right-24 h-[280px] w-[280px] rounded-full bg-[#a8c4f0] opacity-40" />
-          <div className="pointer-events-none absolute -bottom-40 -right-2 h-[360px] w-[360px] rounded-full bg-[#a8c4f0] opacity-30" />
-        </aside>
+        <RightSection />
       </div>
     </div>
   );

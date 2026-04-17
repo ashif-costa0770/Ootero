@@ -12,6 +12,7 @@ export const registerSchema = z.object({
     country: z.string().optional(),
     company: z.string().optional(),
     shipmentRange: z.string().optional(),
+    captchaToken: z.string().min(1, { message: "Captcha required" }).trim(),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
@@ -23,3 +24,18 @@ export const loginSchema = z.object({
     password: z.string().min(8, { message: "Password required" }).trim(),
     captchaToken: z.string().min(1, { message: "Captcha required" }).trim(),
 })
+
+//! Forgot Password Validation
+export const forgotPasswordSchema = z.object({
+    email: z.email({ message: "Invalid email address" }).trim().toLowerCase(),
+});
+
+//! Reset Password Validation
+export const resetPasswordSchema = z.object({
+    token: z.string().min(1, { message: "Token required" }).trim(),
+    newPassword: z.string().min(8, { message: "Password must be at least 8 characters long" }).trim(),
+    confirmPassword: z.string().min(8, { message: "Confirm password required" }).trim(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+});

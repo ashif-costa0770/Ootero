@@ -2,9 +2,8 @@ import prisma from "../lib/prisma.js";
 import { successResponse, errorResponse } from "../utils/respones.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { generateToken } from "../utils/token.js";
-import { sendVerificationEmail } from "../utils/sendEmail.js";
-import { error } from "console";
+import { generateResetToken, generateToken } from "../utils/token.js";
+import { sendResetEmail, sendVerificationEmail } from "../utils/sendEmail.js";
 
 //! Register Controller
 export const register = async (req, res) => {
@@ -18,6 +17,7 @@ export const register = async (req, res) => {
       country,
       company,
       shipmentRange,
+      captchaToken,
     } = req.body;
 
     const existingUser = await prisma.user.findUnique({
@@ -26,6 +26,21 @@ export const register = async (req, res) => {
 
     if (existingUser) {
       return errorResponse(res, 400, "User already exists");
+    }
+
+    // Verify captcha
+    const response = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `secret=${process.env.GOOGLE_SECRET_KEY}&response=${captchaToken}`,
+      },
+    );
+
+    const data = await response.json();
+    if (!data.success) {
+      return errorResponse(res, 400, "Invalid captcha");
     }
 
     // Hash password
@@ -64,7 +79,7 @@ export const register = async (req, res) => {
     return successResponse(
       res,
       201,
-      "Verification email sent. Please check your inbox",
+      "Registration successful. Please check your email for verification",
     );
   } catch (error) {
     return errorResponse(res, 500, "Error in User Registration", error.message);
@@ -105,7 +120,6 @@ export const verifyEmail = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    
     const { email, password, captchaToken } = req.body;
 
     const existingUser = await prisma.user.findUnique({
@@ -123,7 +137,7 @@ export const login = async (req, res) => {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `secret=${process.env.GOOGLE_SECRET_KEY}&response=${captchaToken}`,
-      }
+      },
     );
 
     const data = await response.json();
@@ -157,5 +171,80 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     return errorResponse(res, 500, "Error in User Login", error.message);
+  }
+};
+
+//! Forgot Password Controller
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    // Prevent email enumeration
+    if (!user) {
+      return res.json({ message: "If email exists, link sent" });
+    }
+
+    // Generate reset token
+    const { rawToken, tokenHash } = generateResetToken();
+
+    //save token to database
+    await prisma.passwordResetToken.create({
+      data: {
+        token: tokenHash,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
+      },
+    });
+
+    // 📧 Send reset email
+    const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${rawToken}`;
+    await sendResetEmail(email, resetLink);
+
+    return successResponse(res, 200, "Reset password link sent to your email");
+  } catch (error) {
+    return errorResponse(res, 500, "Error in Forgot Password", error.message);
+  }
+};
+
+//! Reset Password
+export const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+  try {
+    // Hash the raw token from the URL to compare with DB
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find the token in the database
+    const record = await prisma.passwordResetToken.findFirst({
+      where: {
+        token: tokenHash,
+        expiresAt: { gt: new Date() }, // not expired
+      },
+    });
+
+    if (!record) {
+      return errorResponse(res, 400, "Invalid or expired reset link");
+    }
+
+    // hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Atomic transaction — update password + mark token used together
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: record.userId },
+        data: { password: hashedPassword },
+      }),
+      prisma.passwordResetToken.deleteMany({
+        where: { userId: record.userId }
+      })
+    ]);
+
+    return successResponse(res, 200, "Password reset successful");
+  } catch (error) {
+    return errorResponse(res, 500, "Error in Reset Password", error.message);
   }
 };
