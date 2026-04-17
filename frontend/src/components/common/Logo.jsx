@@ -1,8 +1,7 @@
+import logo from "../../assets/white-logo.png";
+
 const Logo = () => (
-    <div className="flex flex-col items-end mb-12">
-      <h1 className="text-5xl font-base text-white tracking-wide">Ootero</h1>
-      <span className="text-sm text-white opacity-60">Auspost Deliver Software</span>
-    </div>
-  );
+  <img src={logo} alt="Logo" className="w-1/3 object-cover" />
+);
 
 export default Logo;
