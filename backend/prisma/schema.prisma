@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ENUMS
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Platform {
+  WOOCOMMERCE
+  SHOPIFY
+  EBAY
+  MAGENTO
+  BIGCOMMERCE
+}
+
+enum StoreStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  PENDING_VERIFICATION
+}
+
+
+
 model User {
   id            Int      @id @default(autoincrement())
   firstName     String
@@ -22,6 +46,7 @@ model User {
   verificationToken String?
   createdAt     DateTime @default(now())
   PasswordResetToken PasswordResetToken[]
+  Store              Store[]
 }
 
 model PasswordResetToken {
@@ -34,9 +59,24 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Store {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  name            String
+  platform        Platform 
+  storeUrl        String?
+  consumerKey     String?  // encrypted
+  consumerSecret  String?  // encrypted
+  status           StoreStatus   @default(ACTIVE)
+  createdAt       DateTime @default(now())
 
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-enum Role {
-  ADMIN
-  USER
+  @@unique([userId, storeUrl])  // Prevent duplicate connections
+  @@index([userId])
+  @@index([platform])
+  
 }
+
+
+

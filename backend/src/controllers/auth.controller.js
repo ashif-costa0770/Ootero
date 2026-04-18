@@ -121,6 +121,7 @@ export const verifyEmail = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password, captchaToken } = req.body;
+    
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
