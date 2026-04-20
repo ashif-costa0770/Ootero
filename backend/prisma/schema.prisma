@@ -15,11 +15,12 @@ enum Role {
 }
 
 enum Platform {
-  WOOCOMMERCE
-  SHOPIFY
-  EBAY
-  MAGENTO
-  BIGCOMMERCE
+  woocommerce
+  shopify
+  ebay
+  magento
+  bigcommerce
+  prestashop
 }
 
 enum StoreStatus {
@@ -63,7 +64,7 @@ model Store {
   id              Int      @id @default(autoincrement())
   userId          Int
   name            String
-  platform        Platform 
+  platform        Platform  
   storeUrl        String?
   consumerKey     String?  // encrypted
   consumerSecret  String?  // encrypted
@@ -72,7 +73,6 @@ model Store {
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, storeUrl])  // Prevent duplicate connections
   @@index([userId])
   @@index([platform])
   

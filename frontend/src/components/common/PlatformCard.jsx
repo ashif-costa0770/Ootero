@@ -4,7 +4,7 @@ const PlatformCard = ({ data, selected, onSelect }) => {
   return (
     <div
       onClick={() => data.available && onSelect(data.id)}
-      className={`
+      className={` cursor-pointer
         relative bg-white rounded-2xl p-6 flex items-center justify-center min-h-[130px]
         border-1  transition-all duration-150  shadow-[0_5px_0px_0px_#1a3a3a]  
       `}

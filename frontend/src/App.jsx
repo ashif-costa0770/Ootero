@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import PlatformSelect from "./pages/PlatformSelect";
-
+import ConnectStore from "./pages/ConnectStore";
 function App() {
   return (
     <>
@@ -20,6 +20,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/platform-select" element={<PlatformSelect />} />
+        <Route path="/connect-store" element={<ConnectStore />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="top-right" richColors />

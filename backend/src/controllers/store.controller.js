@@ -9,23 +9,22 @@ export const connectStore = async (req, res) => {
   const userId = req.user.id;
 
   try {
+    // Check if store already exists
+    const existingStore = await prisma.store.findFirst({
+      where: {
+        storeUrl: storeUrl,
+        userId: userId,
+      },
+    });
 
-    //TODO: Check if store already exists
-    const existingStore = await prisma.store.findUnique({
-        where: {
-            storeUrl: storeUrl,
-            userId: userId,
-        },
-    })
-    
     if (existingStore) {
-        return errorResponse(res, 400, "Store already connected");
+      return errorResponse(res, 400, "Store already connected");
     }
 
     // 1. Verify credentials
     let isValid = false;
 
-    if (platform === "WOOCOMMERCE") {
+    if (platform === "woocommerce") {
       isValid = await verifyWooCommerce({
         url: storeUrl,
         key: consumerKey,
