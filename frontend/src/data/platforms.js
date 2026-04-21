@@ -17,7 +17,7 @@ export const platforms = [
       id: "ebay",
       name: "eBay",
       image: ebay,
-      available: true,
+      available: false,
     },
     {
       id: "shopify",

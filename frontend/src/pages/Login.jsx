@@ -46,7 +46,7 @@ const Login = () => {
       const response = await login(data.email, data.password, captchaValue);
       if (response.status === 200) {
         toast.success("Login successful");
-        navigate("/");
+        navigate("/platform-select");
         reset();
       }
     } catch (error) {

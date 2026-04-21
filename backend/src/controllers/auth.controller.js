@@ -3,7 +3,7 @@ import { successResponse, errorResponse } from "../utils/respones.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { generateResetToken, generateToken } from "../utils/token.js";
-import { sendResetEmail, sendVerificationEmail } from "../utils/sendEmail.js";
+import { sendAccountConfirmationEmail, sendResetEmail, sendVerificationEmail } from "../utils/sendEmail.js";
 
 //! Register Controller
 export const register = async (req, res) => {
@@ -68,13 +68,10 @@ export const register = async (req, res) => {
     // const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
     const verifyLink = `${process.env.SERVER_URL}/api/auth/verify-email?token=${token}`;
 
-    // 📧 Send email
-    await sendVerificationEmail(
-      email,
-      "Verify Your Email",
-      `<p>Click below to verify your email:</p>
-         <a href="${verifyLink}">Verify Email</a>`,
-    );
+    const recipientName = `${firstName?.trim() || ""} ${lastName?.trim() || ""}`.trim() || "there";
+
+    // 📧 Send branded verification email
+    await sendVerificationEmail(email, verifyLink, recipientName);
 
     return successResponse(
       res,
@@ -89,7 +86,6 @@ export const register = async (req, res) => {
 //! Verify email
 export const verifyEmail = async (req, res) => {
   try {
-    console.log("Inside verify email controller");
     const { token } = req.query;
 
     const user = await prisma.user.findFirst({
@@ -108,6 +104,12 @@ export const verifyEmail = async (req, res) => {
         verificationToken: null,
       },
     });
+
+    const recipientName = `${user.firstName?.trim() || ""} ${user.lastName?.trim() || ""}`.trim() || "there";
+
+    //send account creation email
+    await sendAccountConfirmationEmail(user.email, recipientName);
+
 
     // redirect to frontend
     res.redirect(`${process.env.CLIENT_URL}/login?verified=true`);
