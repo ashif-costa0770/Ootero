@@ -9,6 +9,7 @@ import { loginSchema } from "../validations/auth.validation";
 import ReCAPTCHA from "react-google-recaptcha";
 import ImageLogo from "../components/common/ImageLogo";
 import RightSection from "../components/login/RightSection";
+import { useAuth } from "../context/AuthContext";
 
 const SITE_KEY = import.meta.env.VITE_GOOGLE_SITE_KEY;
 
@@ -18,7 +19,8 @@ const Login = () => {
   const [captchaValue, setCaptchaValue] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
+  const { checkAuth } = useAuth();
+  
   const {
     register,
     handleSubmit,
@@ -46,6 +48,7 @@ const Login = () => {
       const response = await login(data.email, data.password, captchaValue);
       if (response.status === 200) {
         toast.success("Login successful");
+        await checkAuth();
         navigate("/platform-select");
         reset();
       }

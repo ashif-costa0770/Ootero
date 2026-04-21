@@ -3,7 +3,11 @@ import { successResponse, errorResponse } from "../utils/respones.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { generateResetToken, generateToken } from "../utils/token.js";
-import { sendAccountConfirmationEmail, sendResetEmail, sendVerificationEmail } from "../utils/sendEmail.js";
+import {
+  sendAccountConfirmationEmail,
+  sendResetEmail,
+  sendVerificationEmail,
+} from "../utils/sendEmail.js";
 
 //! Register Controller
 export const register = async (req, res) => {
@@ -68,7 +72,8 @@ export const register = async (req, res) => {
     // const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
     const verifyLink = `${process.env.SERVER_URL}/api/auth/verify-email?token=${token}`;
 
-    const recipientName = `${firstName?.trim() || ""} ${lastName?.trim() || ""}`.trim() || "there";
+    const recipientName =
+      `${firstName?.trim() || ""} ${lastName?.trim() || ""}`.trim() || "there";
 
     // 📧 Send branded verification email
     await sendVerificationEmail(email, verifyLink, recipientName);
@@ -105,11 +110,12 @@ export const verifyEmail = async (req, res) => {
       },
     });
 
-    const recipientName = `${user.firstName?.trim() || ""} ${user.lastName?.trim() || ""}`.trim() || "there";
+    const recipientName =
+      `${user.firstName?.trim() || ""} ${user.lastName?.trim() || ""}`.trim() ||
+      "there";
 
     //send account creation email
     await sendAccountConfirmationEmail(user.email, recipientName);
-
 
     // redirect to frontend
     res.redirect(`${process.env.CLIENT_URL}/login?verified=true`);
@@ -123,7 +129,6 @@ export const verifyEmail = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password, captchaToken } = req.body;
-    
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -174,6 +179,33 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     return errorResponse(res, 500, "Error in User Login", error.message);
+  }
+};
+
+//! Get user profile
+export const getProfile = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+    });
+
+    if (!user) {
+      return errorResponse(res, 400, "User not found");
+    }
+
+    return successResponse(res, 200, "User profile fetched successfully", user);
+  } catch (error) {
+    return errorResponse(res, 500, "Error in Get Profile", error.message);
+  }
+};
+
+//! Logout user
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token", { httpOnly: true });
+    return successResponse(res, 200, "User logged out successfully");
+  } catch (error) {
+    return errorResponse(res, 500, "Error in Logout", error.message);
   }
 };
 
@@ -242,8 +274,8 @@ export const resetPassword = async (req, res) => {
         data: { password: hashedPassword },
       }),
       prisma.passwordResetToken.deleteMany({
-        where: { userId: record.userId }
-      })
+        where: { userId: record.userId },
+      }),
     ]);
 
     return successResponse(res, 200, "Password reset successful");

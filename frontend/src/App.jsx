@@ -9,20 +9,30 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import PlatformSelect from "./pages/PlatformSelect";
 import ConnectStore from "./pages/ConnectStore";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PublicOnlyRoute from "./components/auth/PublicOnlyRoute";
 function App() {
   return (
     <>
-     {/* <Navbar/> */}
+      {/* <Navbar/> */}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/platform-select" element={<PlatformSelect />} />
-        <Route path="/connect-store" element={<ConnectStore />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/platform-select" element={<PlatformSelect />} />
+          <Route path="/connect-store" element={<ConnectStore />} />
+        </Route>
+
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Route>
+
         <Route path="*" element={<NotFound />} />
       </Routes>
+
       <Toaster position="top-right" richColors />
     </>
   );
