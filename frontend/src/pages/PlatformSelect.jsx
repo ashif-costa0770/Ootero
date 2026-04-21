@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import PlatformCard from "../components/common/PlatformCard";
 import { platforms } from "../data/platforms";
-import { toast } from "sonner";
 import Logo from "../components/common/Logo";
 import { useNavigate } from "react-router-dom";
 
