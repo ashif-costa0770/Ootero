@@ -11,6 +11,7 @@ import PlatformSelect from "./pages/PlatformSelect";
 import ConnectStore from "./pages/ConnectStore";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicOnlyRoute from "./components/auth/PublicOnlyRoute";
+import StoreDetails from "./pages/StoreDetails";
 function App() {
   return (
     <>
@@ -21,6 +22,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/platform-select" element={<PlatformSelect />} />
           <Route path="/connect-store" element={<ConnectStore />} />
+          <Route path="/store-details/:storeId" element={<StoreDetails />} />
         </Route>
 
         <Route element={<PublicOnlyRoute />}>

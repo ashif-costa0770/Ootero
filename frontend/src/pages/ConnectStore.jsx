@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import FollowSteps from "../components/FollowSteps";
+import FollowSteps from "../components/store/FollowSteps";
 import StoreForm from "../components/form/StoreForm";
 
 const ConnectStore = () => {

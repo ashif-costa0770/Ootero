@@ -48,6 +48,10 @@ model User {
   createdAt     DateTime @default(now())
   PasswordResetToken PasswordResetToken[]
   Store              Store[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
 }
 
 model PasswordResetToken {
@@ -58,6 +62,9 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@map("password_reset_tokens")
+ 
 }
 
 model Store {
@@ -68,15 +75,98 @@ model Store {
   storeUrl        String?
   consumerKey     String?  // encrypted
   consumerSecret  String?  // encrypted
-  status           StoreStatus   @default(ACTIVE)
+  status          StoreStatus   @default(ACTIVE)
   createdAt       DateTime @default(now())
+  orders          Order[]
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+
   @@index([userId])
   @@index([platform])
+  @@map("stores")
   
 }
 
 
+model Order {
+  id                 Int       @id @default(autoincrement())
+  storeId            Int
+  wooOrderId         Int
+  orderNumber        String
 
+  // Status
+  status             String
+  fulfillmentStatus  String    @default("unfulfilled")
+  needsProcessing    Boolean   @default(false)
+
+  // Financials
+  currency           String
+  currencySymbol     String?
+  totalAmount        Float
+  shippingTotal      Float     @default(0)
+  taxTotal           Float     @default(0)
+  totalDiscount      Float     @default(0)
+
+  // Payment
+  paymentMethod      String?
+  paymentMethodTitle String?
+  shippingMethod     String?
+
+  // Customer
+  customerName       String
+  customerEmail      String
+  customerPhone      String?
+
+  // Billing Address
+  billingAddress1    String?
+  billingAddress2    String?
+  billingCity        String?
+  billingState       String?
+  billingPostcode    String?
+  billingCountry     String?
+
+  // Shipping Address
+  shippingAddress1   String?
+  shippingAddress2   String?
+  shippingCity       String?
+  shippingState      String?
+  shippingPostcode   String?
+  shippingCountry    String?
+
+  // Notes
+  note               String?   @db.Text
+
+  // Dates
+  datePaid           DateTime?
+  dateCompleted      DateTime?
+  createdAt          DateTime
+  updatedAt          DateTime  @updatedAt
+  syncedAt           DateTime  @default(now())
+
+  // Relations
+  store              Store     @relation(fields: [storeId], references: [id])
+  items              OrderItem[]
+
+  @@unique([storeId, wooOrderId])   // 👈 scoped per store
+  @@index([storeId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int?
+  name      String
+  sku       String?
+  quantity  Int
+  price     Float
+  subtotal  Float   @default(0)  // 👈 quantity * price
+  imageUrl  String?
+
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}

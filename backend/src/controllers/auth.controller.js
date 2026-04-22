@@ -24,7 +24,7 @@ export const register = async (req, res) => {
       captchaToken,
     } = req.body;
 
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findFirst({
       where: { email },
     });
 

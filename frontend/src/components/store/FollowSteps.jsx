@@ -1,5 +1,5 @@
 import React from "react";
-import woocommerce from "../assets/woocommerce_logo.svg";
+import woocommerce from "../../assets/woocommerce_logo.svg";
 
 const FollowSteps = () => {
   return (

@@ -3,6 +3,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import cookieParser from "cookie-parser";
 import storeRoutes from "./routes/store.routes.js";
+import syncRoutes from "./routes/sync.routes.js";
 
 const app = express();
 
@@ -24,4 +25,5 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/store", storeRoutes);
+app.use("/api/sync", syncRoutes);
 export default app;

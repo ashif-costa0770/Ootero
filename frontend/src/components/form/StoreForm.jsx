@@ -6,12 +6,13 @@ import { connectStoreSchema } from "../../validations/store.validation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { connectStore } from "../../services/store.api";
+import { useNavigate } from "react-router-dom";
 
 const StoreForm = ({ selectedPlatform = "woocommerce" }) => {
   const [loading, setLoading] = useState(false);
   const platformLabel =
     selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1);
-
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -50,6 +51,7 @@ const StoreForm = ({ selectedPlatform = "woocommerce" }) => {
       if (response.status >= 200 && response.status < 300) {
         toast.success("Store connected successfully");
         reset();
+        navigate(`/store-details/${response.data.data.id}`);
       }
     } catch (error) {
       const message =
