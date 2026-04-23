@@ -62,19 +62,28 @@ const syncOrders = async (store) => {
             customerEmail: o.billing?.email || "",
             customerPhone: o.billing?.phone || null,
             // Billing
+            billingFirstName: o.billing?.first_name || null,
+            billingLastName: o.billing?.last_name || null,
+            billingCompany: o.billing?.company || null,
             billingAddress1: o.billing?.address_1 || null,
             billingAddress2: o.billing?.address_2 || null,
             billingCity: o.billing?.city || null,
             billingState: o.billing?.state || null,
             billingPostcode: o.billing?.postcode || null,
             billingCountry: o.billing?.country || null,
+            billingEmail: o.billing?.email || null,
+            billingPhone: o.billing?.phone || null,
             // Shipping
+            shippingFirstName: o.shipping?.first_name || null,
+            shippingLastName: o.shipping?.last_name || null,
+            shippingCompany: o.shipping?.company || null,
             shippingAddress1: o.shipping?.address_1 || null,
             shippingAddress2: o.shipping?.address_2 || null,
             shippingCity: o.shipping?.city || null,
             shippingState: o.shipping?.state || null,
             shippingPostcode: o.shipping?.postcode || null,
             shippingCountry: o.shipping?.country || null,
+            shippingPhone: o.shipping?.phone || null,
             note: o.customer_note || null,
             needsProcessing: o.needs_processing || false,
             datePaid: o.date_paid ? new Date(o.date_paid) : null,
@@ -134,7 +143,10 @@ const syncOrders = async (store) => {
           await prisma.orderItem.createMany({
             data: o.line_items.map((item) => ({
               orderId: savedOrder.id,
-              productId: item.product_id || null,
+              // ✅ store Woo ID here
+              wooProductId: item.product_id || null,
+              // ❌ DO NOT set this yet
+              productId: null,
               name: item.name || "Unknown Product",
               sku: item.sku || null,
               quantity: item.quantity || 1,

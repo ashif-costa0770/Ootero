@@ -77,10 +77,11 @@ model Store {
   consumerSecret  String?  // encrypted
   status          StoreStatus   @default(ACTIVE)
   createdAt       DateTime @default(now())
+
   orders          Order[]
+  products        Product[]
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
 
   @@index([userId])
   @@index([platform])
@@ -118,22 +119,30 @@ model Order {
   customerEmail      String
   customerPhone      String?
 
-  // Billing Address
+  // Billing 
+  billingFirstName   String?
+  billingLastName    String?
+  billingCompany     String?
   billingAddress1    String?
   billingAddress2    String?
   billingCity        String?
   billingState       String?
   billingPostcode    String?
   billingCountry     String?
+  billingEmail       String?
+  billingPhone       String?
 
-  // Shipping Address
+  // Shipping
+  shippingFirstName  String?
+  shippingLastName   String?
+  shippingCompany    String?
   shippingAddress1   String?
   shippingAddress2   String?
   shippingCity       String?
   shippingState      String?
   shippingPostcode   String?
   shippingCountry    String?
-
+  shippingPhone      String?
   // Notes
   note               String?   @db.Text
 
@@ -158,7 +167,8 @@ model Order {
 model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   Int
-  productId Int?
+  productId Int?       // FK → products.id (will be set after product sync) 
+  wooProductId Int?     // raw WooCommerce product_id 
   name      String
   sku       String?
   quantity  Int
@@ -167,6 +177,55 @@ model OrderItem {
   imageUrl  String?
 
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@map("order_items")
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  storeId       Int
+  wooProductId  Int
+
+  // Core
+  name          String
+  slug          String?
+  permalink     String?
+  type          String?   // simple, variable, grouped
+  status        String    // publish, draft, private
+
+  // Pricing
+  price         Float?
+  regularPrice  Float?
+  salePrice     Float?
+  onSale        Boolean  @default(false)
+
+  // Inventory
+  sku           String?
+  manageStock   Boolean  @default(false)
+  stockQuantity Int?     // null when manageStock is false
+  stockStatus   String   @default("instock") // instock, outofstock, onbackorder
+
+  // Shipping
+  weight        Float?
+  dimensions    Json?    // { length, width, height }
+
+  // Taxonomy (stored as JSON arrays)
+  categories    Json?    // [{ id, name, slug }]
+  images        Json?    // [{ id, src, name, alt }]
+  attributes    Json?    // [{ id, name, options: [] }]
+
+  // Sync
+  syncedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  store         Store      @relation(fields: [storeId], references: [id])
+  orderItems    OrderItem[]
+
+  @@unique([storeId, wooProductId])
+  @@index([storeId])
+  @@index([status])
+  @@map("products")
 }

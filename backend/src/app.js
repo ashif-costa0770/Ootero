@@ -4,6 +4,8 @@ import authRoutes from "./routes/auth.routes.js";
 import cookieParser from "cookie-parser";
 import storeRoutes from "./routes/store.routes.js";
 import syncRoutes from "./routes/sync.routes.js";
+import orderRoutes from "./routes/order.routes.js";
+import productRoutes from "./routes/product.routes.js";
 
 const app = express();
 
@@ -26,4 +28,6 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/sync", syncRoutes);
+app.use("/api/order", orderRoutes);
+app.use("/api/product", productRoutes);
 export default app;
