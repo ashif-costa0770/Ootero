@@ -54,6 +54,11 @@ export const connectStore = async (req, res) => {
       },
     });
 
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: "ADMIN" },
+    });
+
     // const { consumerKey, consumerSecret, ...safeStore } = store;
     return successResponse(res, 201, "Store connected successfully", store);
   } catch (error) {

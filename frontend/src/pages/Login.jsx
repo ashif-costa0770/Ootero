@@ -48,8 +48,17 @@ const Login = () => {
       const response = await login(data.email, data.password, captchaValue);
       if (response.status === 200) {
         toast.success("Login successful");
-        await checkAuth();
-        navigate("/platform-select");
+        const profile = await checkAuth();
+        const activeStoreId = localStorage.getItem("activeStoreId");
+        if (profile?.role === "ADMIN") {
+          navigate(
+            activeStoreId
+              ? `/admin/woocommerce/${activeStoreId}/orders`
+              : "/admin/stores",
+          );
+        } else {
+          navigate("/platform-select");
+        }
         reset();
       }
     } catch (error) {

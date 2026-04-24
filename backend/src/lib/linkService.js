@@ -17,6 +17,9 @@ const linkOrderItemsToProductsService = async (storeId) => {
       where: {
         wooProductId: product.wooProductId,
         productId: null,
+        order: {
+          storeId,
+        },
       },
       data: {
         productId: product.id,

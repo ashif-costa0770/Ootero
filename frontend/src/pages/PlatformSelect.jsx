@@ -19,7 +19,7 @@ const PlatformSelect = () => {
       {/* Top Section */}
       <div className="bg-[#2563EB]  h-[280px] text-white text-center relative flex items-center justify-center pb-6 px-4">
         {/* Logo Section */}
-        <div className="absolute top-5 left-9 w-1/2 lg:w-1/4">
+        <div className="absolute top-5 left-9 max-w-32">
           <Logo />
         </div>
         <h1 className="text-3xl font-bold leading-tight lg:text-5xl">

@@ -22,6 +22,7 @@ export default function StoreDetails() {
       setLoading(false);
       return;
     }
+    localStorage.setItem("activeStoreId", String(numericStoreId));
 
     const fetchDetails = async () => {
       try {

@@ -7,6 +7,13 @@ const syncOrders = async (store) => {
   let page = 1;
   let totalSynced = 0;
   let totalFailed = 0;
+  const products = await prisma.product.findMany({
+    where: { storeId: store.id },
+    select: { id: true, wooProductId: true },
+  });
+  const productIdByWooId = new Map(
+    products.map((product) => [product.wooProductId, product.id]),
+  );
 
   while (true) {
     let orders;
@@ -143,10 +150,8 @@ const syncOrders = async (store) => {
           await prisma.orderItem.createMany({
             data: o.line_items.map((item) => ({
               orderId: savedOrder.id,
-              // ✅ store Woo ID here
               wooProductId: item.product_id || null,
-              // ❌ DO NOT set this yet
-              productId: null,
+              productId: productIdByWooId.get(item.product_id) || null,
               name: item.name || "Unknown Product",
               sku: item.sku || null,
               quantity: item.quantity || 1,

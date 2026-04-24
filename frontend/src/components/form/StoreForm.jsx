@@ -49,9 +49,11 @@ const StoreForm = ({ selectedPlatform = "woocommerce" }) => {
       const payload = { ...data, platform: selectedPlatform };
       const response = await connectStore(payload);
       if (response.status >= 200 && response.status < 300) {
+        const newStoreId = String(response.data.data.id);
+        localStorage.setItem("activeStoreId", newStoreId);
         toast.success("Store connected successfully");
         reset();
-        navigate(`/store-details/${response.data.data.id}`);
+        navigate(`/store-details/${newStoreId}`);
       }
     } catch (error) {
       const message =

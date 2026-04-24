@@ -12,6 +12,13 @@ import ConnectStore from "./pages/ConnectStore";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicOnlyRoute from "./components/auth/PublicOnlyRoute";
 import StoreDetails from "./pages/StoreDetails";
+import Layout from "./components/admin/Layout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import Orders from "./pages/admin/Orders";
+import Tracking from "./pages/admin/Tracking";
+import Manifest from "./pages/admin/Manifest";
+import Payloads from "./pages/admin/Payloads";
+import Store from "./pages/admin/Store";
 function App() {
   return (
     <>
@@ -30,6 +37,18 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+        </Route>
+
+        {/* ADMIN ROUTES (WITH LAYOUT) */}
+        <Route path="/admin" element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="woocommerce/:storeId/orders" element={<Orders />} />
+            <Route path="woocommerce/manifest" element={<Manifest />} />
+            <Route path="woocommerce/tracking" element={<Tracking />} />
+            <Route path="woocommerce/payloads" element={<Payloads />} />
+            <Route path="stores" element={<Store />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<NotFound />} />

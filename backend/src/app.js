@@ -28,6 +28,6 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/sync", syncRoutes);
-app.use("/api/order", orderRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/product", productRoutes);
 export default app;

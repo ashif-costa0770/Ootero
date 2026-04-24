@@ -6,7 +6,7 @@ import { successResponse, errorResponse } from "../utils/respones.js";
 export const getOrders = async (req, res) => {
   const storeId = parseInt(req.params.storeId);
   const userId = req.user.id;
-  const { page = 1, limit = 20, status, search } = req.query;
+  const { page = 1, limit = 10, status, search } = req.query;
   const skip = (page - 1) * limit;
 
   try {
@@ -60,7 +60,27 @@ export const getOrders = async (req, res) => {
           currency: true,
           customerName: true,
           customerEmail: true,
+          customerPhone: true,
+          billingAddress1: true,
+          shippingMethod: true,
+          shippingTotal: true,
           createdAt: true,
+          items: {
+            select: {
+              productId: true,
+              name: true,
+              sku: true,
+              quantity: true,
+              price: true,
+              product: {
+                select: {
+                  dimensions: true,
+                  weight: true,
+                },
+              },
+            },
+            take: 1,
+          },
         },
       }),
       prisma.order.count({
