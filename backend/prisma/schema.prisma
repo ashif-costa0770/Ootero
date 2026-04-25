@@ -77,6 +77,7 @@ model Store {
   consumerSecret  String?  // encrypted
   status          StoreStatus   @default(ACTIVE)
   createdAt       DateTime @default(now())
+  lastOrderSyncAt DateTime?
 
   orders          Order[]
   products        Product[]

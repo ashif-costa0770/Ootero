@@ -13,6 +13,7 @@ export const columns = [
 
   // ORDER INFO
   columnHelper.accessor("id", {
+    id: "orderInfo",
     header: <div className="text-sm text-gray-700">ORDER INFO.</div>,
     cell: (info) => {
       const row = info.row.original;

@@ -9,13 +9,13 @@ import {
   Clock,
 } from "lucide-react";
 import SearchInput from "../common/SearchInput";
-const Header = () => {
+const Header = ({ sidebarOpen, setSidebarOpen }) => {
   return (
     <div className="h-full flex items-center justify-between px-4">
       {/* left side */}
       <div className="flex items-center gap-4">
-        <button className=" cursor-pointer rounded-full">
-          <PanelLeft size={20} className=" text-gray-600" />
+        <button className=" cursor-pointer rounded-full" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <PanelLeft size={20} className=" text-gray-600"  />
         </button>
         <SearchInput placeholder="Search..." />
         {/* add button */}

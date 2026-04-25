@@ -44,6 +44,7 @@ function App() {
           <Route element={<Layout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="woocommerce/:storeId/orders" element={<Orders />} />
+            <Route path="woocommerce/:storeId/orders/:statusKey" element={<Orders />} />
             <Route path="woocommerce/manifest" element={<Manifest />} />
             <Route path="woocommerce/tracking" element={<Tracking />} />
             <Route path="woocommerce/payloads" element={<Payloads />} />
