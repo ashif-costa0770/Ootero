@@ -146,6 +146,7 @@ model Order {
   shippingPhone      String?
   // Notes
   note               String?   @db.Text
+  isManuallyEdited   Boolean   @default(false)
 
   // Dates
   datePaid           DateTime?

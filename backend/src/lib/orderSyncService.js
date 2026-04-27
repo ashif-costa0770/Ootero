@@ -214,6 +214,21 @@ export const forceOrderSync = async (store, filters) => {
   let totalSynced = 0;
   let totalFailed = 0;
 
+  const products = await prisma.product.findMany({
+    where: { storeId: store.id },
+    select: {
+      id: true,
+      wooProductId: true,
+    },
+  });
+
+  // Create Map: wooProductId → product.id
+  const productIdByWooId = new Map();
+
+  for (const p of products) {
+    productIdByWooId.set(p.wooProductId, p.id);
+  }
+
   while (true) {
     let orders;
 
@@ -222,7 +237,7 @@ export const forceOrderSync = async (store, filters) => {
       page,
       orderby: "date",
       order: "desc",
-    }
+    };
 
     //add filters
     if (filters.fromDate) {
@@ -381,17 +396,21 @@ export const forceOrderSync = async (store, filters) => {
       }
     }
 
-    console.log(`[FORCE SYNC] Page ${page} done — ${orders.length} orders processed`);
+    console.log(
+      `[FORCE SYNC] Page ${page} done — ${orders.length} orders processed`,
+    );
 
     // If less than 100 returned, this was the last page
     if (orders.length < 50) break;
     page++;
   }
 
-  console.log(`[FORCE SYNC] Finished. Synced: ${totalSynced} | Failed: ${totalFailed}`);
+  console.log(
+    `[FORCE SYNC] Finished. Synced: ${totalSynced} | Failed: ${totalFailed}`,
+  );
 
   return {
     totalSynced,
     totalFailed,
   };
-}
+};

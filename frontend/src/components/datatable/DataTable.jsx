@@ -4,12 +4,20 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import SearchInput from "../common/SearchInput";
-import { Loader2, Package, RefreshCw, Funnel, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  Package,
+  RefreshCw,
+  Funnel,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { triggerOrderSync } from "../../services/order.api";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
 import ColumnFilterDropdown from "./ColumnFilterDropdown";
+import ForceSyncForm from "../form/ForceSyncForm";
 
 const columnOptions = [
   { id: "orderInfo", label: "Order Info" },
@@ -35,6 +43,7 @@ export default function DataTable({
 }) {
   const { storeId } = useParams();
   const [loading, setLoading] = useState(false);
+  const [forceSyncOpen, setForceSyncOpen] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState({
     select: true,
     orderInfo: true,
@@ -155,6 +164,13 @@ export default function DataTable({
         {/* Sync and create order */}
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setForceSyncOpen(true)}
+            className="flex cursor-pointer items-center gap-2 text-sm border border-blue-500 text-blue-500 px-4 py-1.5 rounded-md hover:bg-slate-700 hover:border-slate-600 hover:text-white transition-all duration-400"
+          >
+            <RefreshCw size={16} />
+            Force Sync from WooCommerce
+          </button>
+          <button
             onClick={handleSync}
             className="flex cursor-pointer items-center gap-2 text-sm border border-blue-500 text-blue-500 px-4 py-1.5 rounded-md hover:bg-slate-700 hover:border-slate-600 hover:text-white transition-all duration-400"
           >
@@ -239,7 +255,8 @@ export default function DataTable({
       {pagination && (
         <div className="flex items-center justify-between pt-2">
           <div className="text-sm text-gray-500">
-            Page {pagination.page} of {pagination.totalPages} ({pagination.total} orders)
+            Page {pagination.page} of {pagination.totalPages} (
+            {pagination.total} orders)
           </div>
           <div className="inline-flex items-center overflow-hidden rounded-xl py-1 border border-gray-300 bg-white">
             <button
@@ -249,30 +266,30 @@ export default function DataTable({
               className="flex items-center border-r border-gray-300 px-1 py-1 text-xs font-medium text-gray-600 disabled:cursor-not-allowed disabled:text-gray-400 hover:bg-gray-50 cursor-pointer"
             >
               <ChevronLeft size={16} />
-            
             </button>
-            {getPaginationItems(pagination.page, pagination.totalPages).map((item, index) =>
-              item === "..." ? (
-                <span
-                  key={`ellipsis-${index}`}
-                  className="border-r border-gray-300 px-1 py-1 text-xs text-gray-500"
-                >
-                  ...
-                </span>
-              ) : (
-                <button
-                  key={`page-${item}`}
-                  type="button"
-                  onClick={() => onPageChange?.(item)}
-                  className={`min-w-8 border-r border-gray-300 px-1 py-1 text-xs font-semibold cursor-pointer ${
-                    pagination.page === item
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {item}
-                </button>
-              ),
+            {getPaginationItems(pagination.page, pagination.totalPages).map(
+              (item, index) =>
+                item === "..." ? (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="border-r border-gray-300 px-1 py-1 text-xs text-gray-500"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={`page-${item}`}
+                    type="button"
+                    onClick={() => onPageChange?.(item)}
+                    className={`min-w-8 border-r border-gray-300 px-1 py-1 text-xs font-semibold cursor-pointer ${
+                      pagination.page === item
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ),
             )}
             <button
               type="button"
@@ -280,7 +297,6 @@ export default function DataTable({
               disabled={!pagination.hasNextPage}
               className="flex items-center px-1 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:text-gray-400 hover:bg-gray-50 cursor-pointer"
             >
-          
               <ChevronRight size={16} />
             </button>
           </div>
@@ -300,6 +316,25 @@ export default function DataTable({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+      )}
+
+      {forceSyncOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70"
+            // onClick={() => setForceSyncOpen(false)}
+          />
+          <div className="relative w-full max-w-lg">
+            <ForceSyncForm
+              storeId={storeId}
+              onSuccess={() => {
+                setForceSyncOpen(false);
+                // optional: call refetch function here if available
+              }}
+              onClose={() => setForceSyncOpen(false)}
+            />
           </div>
         </div>
       )}

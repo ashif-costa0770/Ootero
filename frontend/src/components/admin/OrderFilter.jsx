@@ -8,11 +8,7 @@ const DashedH = () => (
   <div className="flex-1 min-w-[16px] border-t border-dashed border-gray-400" />
 );
 
-const DashedV = () => (
-  <div className="w-px h-4 mx-auto border-l border-dashed border-gray-400" />
-);
-
-export default function OrderFilter({ status }) {
+export default function OrderFilter({ statusCounts }) {
   const navigate = useNavigate();
   const { storeId, statusKey } = useParams();
 
@@ -55,6 +51,7 @@ export default function OrderFilter({ status }) {
         <Pill
           label="Awaiting Process"
           active={statusKey === "processing"}
+          count = {statusCounts?.processing || 0}
           onClick={() => goToStatus("processing")}
         />
         <DashedH />

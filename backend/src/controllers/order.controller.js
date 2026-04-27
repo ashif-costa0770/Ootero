@@ -1,5 +1,7 @@
 import prisma from "../lib/prisma.js";
+import { removeOrderItemService } from "../services/order.service.js";
 import { successResponse, errorResponse } from "../utils/respones.js";
+import { updateShippingAddressService } from "../services/order.service.js";
 
 //! get Orders
 
@@ -43,8 +45,19 @@ export const getOrders = async (req, res) => {
       }),
     };
 
+    const summaryWhere = {
+      storeId,
+      ...(search && {
+        OR: [
+          { orderNumber: { contains: search } },
+          { customerName: { contains: search } },
+          { customerEmail: { contains: search } },
+        ],
+      }),
+    };
+
     //fetch orders
-    const [orders, total] = await Promise.all([
+    const [orders, total, statusRows] = await Promise.all([
       prisma.order.findMany({
         where,
         skip: parseInt(skip),
@@ -62,11 +75,19 @@ export const getOrders = async (req, res) => {
           customerEmail: true,
           customerPhone: true,
           billingAddress1: true,
+          shippingAddress1: true,
+          shippingAddress2: true,
+          shippingCity: true,
+          shippingState: true,
+          shippingPostcode: true,
+          shippingCountry: true,
+          shippingPhone: true,                                      
           shippingMethod: true,
           shippingTotal: true,
           createdAt: true,
           items: {
             select: {
+              id: true,
               productId: true,
               name: true,
               sku: true,
@@ -79,14 +100,26 @@ export const getOrders = async (req, res) => {
                 },
               },
             },
-            take: 1,
           },
         },
       }),
       prisma.order.count({
         where,
       }),
+      prisma.order.groupBy({
+        by: ["status"],
+        where: summaryWhere,
+        _count: {
+          status: true,
+        },
+      }),
     ]);
+
+    // Calculate counts for each status
+    const statusCounts = statusRows.reduce((acc, curr) => {
+      acc[curr.status] = curr._count.status;
+      return acc;
+    }, {});
 
     // Pagination metadata
     const totalPages = Math.ceil(total / limit);
@@ -103,6 +136,7 @@ export const getOrders = async (req, res) => {
         hasNextPage,
         hasPrevPage,
       },
+      statusCounts,
     });
   } catch (error) {
     return errorResponse(res, 500, "Error in getting orders", error.message);
@@ -126,8 +160,8 @@ export const getOrderById = async (req, res) => {
       where: {
         id: storeId,
         userId,
-      }
-    })
+      },
+    });
 
     if (!store) {
       return errorResponse(res, 404, "Store not found");
@@ -141,8 +175,8 @@ export const getOrderById = async (req, res) => {
       },
       include: {
         items: true,
-      }
-    })
+      },
+    });
 
     if (!order) {
       return errorResponse(res, 404, "Order not found");
@@ -158,3 +192,48 @@ export const getOrderById = async (req, res) => {
     );
   }
 };
+
+//! remove Order Item
+export const removeOrderItemController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const orderId = parseInt(req.params.orderId);
+    const orderItemId = parseInt(req.params.orderItemId);
+
+    //call service
+    const result = await removeOrderItemService({
+      orderId,
+      orderItemId,
+      userId,
+    });
+
+    return successResponse(res, 200, "Order item removed successfully", result);
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.statusCode || 500,
+      error.message || "Error in removing order item"
+    );
+  }
+};
+
+
+//! update order
+export const updateShippingAddressController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const orderId = parseInt(req.params.orderId);
+
+    //service
+    const result = await updateShippingAddressService({
+      orderId,
+      userId,
+      data: req.body
+    })
+
+    return successResponse(res, 200, "Shipping address updated successfully", result);
+  } catch (error) {
+    return errorResponse(res, error.statusCode || 500, error.message || "Error in updating order");
+    
+  }
+}

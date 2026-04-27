@@ -21,7 +21,10 @@ export const triggerOrderSync = async (req, res) => {
     }
 
     const result = await syncOrders(store);
-    const message = result.syncType === "full" ? "Full order sync completed" : "New orders synced successfully";
+    const message =
+      result.syncType === "full"
+        ? "Full order sync completed"
+        : "New orders synced successfully";
 
     return successResponse(res, 200, message, {
       totalSynced: result.totalSynced,
@@ -38,12 +41,7 @@ export const forceTriggerOrderSync = async (req, res) => {
   try {
     const storeId = parseInt(req.params.storeId);
     const userId = req.user.id;
-    const {
-      orderIds,
-      status,
-      fromDate,
-      toDate,
-    } = req.body;
+    const { orderIds, status, fromDate, toDate } = req.body;
 
     if (!orderIds && !status && !fromDate && !toDate) {
       return errorResponse(res, 400, "At least one filter is required");
@@ -52,31 +50,40 @@ export const forceTriggerOrderSync = async (req, res) => {
     const store = await prisma.store.findFirst({
       where: {
         id: storeId,
-        userId
-      }
-    })
+        userId,
+      },
+    });
 
     if (!store) {
       return errorResponse(res, 404, "Store not found");
     }
 
     //force sync service
-    const result = await forceOrderSync(store, {orderIds, status, fromDate, toDate});
-
-    return successResponse(res, 200, "Force order sync completed", {
-      totalSynced: result.totalSynced,
-      totalFailed: result.totalFailed,
-      syncType: "force",
+    const result = await forceOrderSync(store, {
+      orderIds,
+      status,
+      fromDate,
+      toDate,
     });
-    
+
+    return successResponse(
+      res,
+      200,
+      `${result.totalSynced} orders force synced successfully`,
+      {
+        totalSynced: result.totalSynced,
+        totalFailed: result.totalFailed,
+      },
+    );
   } catch (error) {
-    return errorResponse(res, 500, "Error in forcing order sync", error.message);
-
-    
+    return errorResponse(
+      res,
+      500,
+      "Error in forcing order sync",
+      error.message,
+    );
   }
-}
-
-
+};
 
 //! sync products
 export const triggerProductSync = async (req, res) => {
@@ -102,6 +109,12 @@ export const triggerProductSync = async (req, res) => {
       totalFailed: result.totalFailed,
     });
   } catch (err) {
-    return errorResponse(res, 500, "Error in triggering product sync", err.message);
+    return errorResponse(
+      res,
+      500,
+      "Error in triggering product sync",
+      err.message,
+    );
   }
 };
+

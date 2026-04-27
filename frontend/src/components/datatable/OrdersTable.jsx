@@ -1,6 +1,5 @@
 import DataTable from "./DataTable";
 import { columns } from "./orders.columns.jsx";
-// import { orders } from "./orders.data.js";
 
 export default function OrdersTable({
   orders,
@@ -13,12 +12,14 @@ export default function OrdersTable({
   onPrevPage,
   onPageChange,
   onLimitChange,
+  onRemoveItem,
+  onEditShipping,
 }) {
   return (
     <div className="p-4 bg-white rounded-xl shadow">
       <DataTable
         data={orders}
-        columns={columns}
+        columns={columns({ onRemoveItem, onEditShipping })}
         loading={loading}
         error={error}
         pagination={pagination}
