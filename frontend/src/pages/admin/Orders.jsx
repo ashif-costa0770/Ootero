@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import OrderFilter from '../../components/admin/OrderFilter'
 import OrdersTable from '../../components/datatable/OrdersTable'
 import { getOrders, removeOrderItem } from '../../services/order.api'
@@ -33,6 +33,7 @@ const Orders = () => {
   const [selectedOrderForShippingEdit, setSelectedOrderForShippingEdit] =
     useState(null);
   const { storeId, statusKey } = useParams();
+  const navigate = useNavigate();
   const status = STATUS_FROM_ROUTE[statusKey] || "";
 
   const handleSearchChange = (value) => {
@@ -116,6 +117,11 @@ const Orders = () => {
     await fetchOrders();
   };
 
+  const handleCreateLabel = (order) => {
+    if (!storeId || !order?.id) return;
+    navigate(`/admin/woocommerce/${storeId}/orders/${order.id}/create-label`);
+  };
+
   return (
     <div className='flex flex-col gap-4 p-4  bg-gray-100'>
       {/* Filter section */}
@@ -137,6 +143,7 @@ const Orders = () => {
         onLimitChange={handleLimitChange}
         onRemoveItem={handleRemoveItem}
         onEditShipping={handleOpenShippingEditModal}
+        onCreateLabel={handleCreateLabel}
       />
 
       {selectedOrderForShippingEdit && (

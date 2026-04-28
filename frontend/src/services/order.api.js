@@ -13,6 +13,10 @@ export const triggerForceOrderSync = async (storeId, data) =>
 export const getOrders = async (storeId, params = {}) =>
   api.get(`/orders/${storeId}`, { params });
 
+//! get Order by id
+export const getOrderById = async (storeId, orderId) =>
+  api.get(`/orders/${storeId}/${orderId}`);
+
 //! remove order item
 export const removeOrderItem = async (orderId, orderItemId) =>
   api.delete(`/orders/${orderId}/items/${orderItemId}`);

@@ -14,12 +14,13 @@ export default function OrdersTable({
   onLimitChange,
   onRemoveItem,
   onEditShipping,
+  onCreateLabel,
 }) {
   return (
     <div className="p-4 bg-white rounded-xl shadow">
       <DataTable
         data={orders}
-        columns={columns({ onRemoveItem, onEditShipping })}
+        columns={columns({ onRemoveItem, onEditShipping, onCreateLabel })}
         loading={loading}
         error={error}
         pagination={pagination}

@@ -174,7 +174,22 @@ export const getOrderById = async (req, res) => {
         storeId,
       },
       include: {
-        items: true,
+        items: {
+          select: {
+            id: true,
+            productId: true,
+            name: true,
+            sku: true,
+            quantity: true,
+            price: true,
+            product: {
+              select: {
+                dimensions: true,
+                weight: true,
+              },
+            },
+          },
+        },
       },
     });
 

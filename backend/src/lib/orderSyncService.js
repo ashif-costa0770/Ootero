@@ -5,25 +5,23 @@ import prisma from "./prisma.js";
 //!sync orders
 export const syncOrders = async (store) => {
   const woo = createWooClient(store);
+
   let page = 1;
   let totalSynced = 0;
   let totalFailed = 0;
 
+  // 🔹 Product map (for linking)
   const products = await prisma.product.findMany({
     where: { storeId: store.id },
     select: { id: true, wooProductId: true },
   });
 
-  const productIdByWooId = new Map(
-    products.map((product) => [product.wooProductId, product.id]),
-  );
+  const productIdByWooId = new Map(products.map((p) => [p.wooProductId, p.id]));
 
-  // ── Decide: Full sync or Incremental sync ──────────────
+  // 🔹 Track latest order date (this run only)
+  let latestOrderDate = null;
+
   const isFirstSync = !store.lastOrderSyncAt;
-
-  // ── Record sync start time BEFORE fetching ─────────────
-  // We save this at the start so we don't miss orders
-  const syncStartTime = new Date();
 
   while (true) {
     let orders;
@@ -34,8 +32,13 @@ export const syncOrders = async (store) => {
       orderby: "date",
       order: "desc",
     };
-    if (!isFirstSync) {
-      params.after = store.lastOrderSyncAt.toISOString();
+
+    // 🔥 Incremental sync
+    if (!isFirstSync && store.lastOrderSyncAt) {
+      const afterDate = new Date(store.lastOrderSyncAt);
+      afterDate.setSeconds(afterDate.getSeconds() + 1); // 👈 important
+
+      params.after = afterDate.toISOString();
     }
 
     try {
@@ -46,20 +49,44 @@ export const syncOrders = async (store) => {
       break;
     }
 
-    // No more orders — stop loop
     if (!orders || orders.length === 0) break;
 
     for (const o of orders) {
       try {
-        // ── Customer name ──────────────────────────────
+        const orderDate = new Date(o.date_created_gmt || o.date_created);
+
+        // 🔥 LOCAL FILTER (prevents duplicate syncing)
+        if (store.lastOrderSyncAt && orderDate <= store.lastOrderSyncAt) {
+          continue;
+        }
+
+        // 🔹 Skip manually edited orders
+        const existingOrder = await prisma.order.findUnique({
+          where: {
+            storeId_wooOrderId: {
+              storeId: store.id,
+              wooOrderId: o.id,
+            },
+          },
+          select: { id: true, isManuallyEdited: true },
+        });
+
+        if (existingOrder?.isManuallyEdited) {
+          continue;
+        }
+
         const customerName =
           `${o.billing?.first_name || ""} ${o.billing?.last_name || ""}`.trim() ||
           "Guest";
 
-        // ── Shipping method title ──────────────────────
         const shippingMethod = o.shipping_lines?.[0]?.method_title || null;
 
-        // ── Upsert Order ───────────────────────────────
+        // 🔹 Track latest order date
+        if (!latestOrderDate || orderDate > latestOrderDate) {
+          latestOrderDate = orderDate;
+        }
+
+        // 🔹 Upsert Order
         const savedOrder = await prisma.order.upsert({
           where: {
             storeId_wooOrderId: {
@@ -152,9 +179,7 @@ export const syncOrders = async (store) => {
           },
         });
 
-        // ── Sync Order Items ───────────────────────────
-        // Delete old items first, then re-insert fresh
-        // This handles item edits/deletions on WooCommerce side
+        // 🔹 Sync Items
         await prisma.orderItem.deleteMany({
           where: { orderId: savedOrder.id },
         });
@@ -166,11 +191,9 @@ export const syncOrders = async (store) => {
               wooProductId: item.product_id || null,
               productId: productIdByWooId.get(item.product_id) || null,
               name: item.name || "Unknown Product",
-              sku: item.sku || null,
               quantity: item.quantity || 1,
               price: parseFloat(item.price || 0),
               subtotal: parseFloat(item.subtotal || 0),
-              imageUrl: item.image?.src || null,
             })),
           });
         }
@@ -182,18 +205,21 @@ export const syncOrders = async (store) => {
       }
     }
 
-    console.log(`[SYNC] Page ${page} done — ${orders.length} orders processed`);
+    // console.log(`[SYNC] Page ${page} done — ${orders.length} orders processed`);
 
-    // If less than 100 returned, this was the last page
     if (orders.length < 50) break;
     page++;
   }
 
-  // ── Save sync timestamp AFTER successful sync ──────────
-  await prisma.store.update({
-    where: { id: store.id },
-    data: { lastOrderSyncAt: syncStartTime }, // 👈 save start time, not end time
-  });
+  // 🔥 Update last sync timestamp
+  if (latestOrderDate) {
+    await prisma.store.update({
+      where: { id: store.id },
+      data: {
+        lastOrderSyncAt: latestOrderDate,
+      },
+    });
+  }
 
   console.log(
     `[SYNC] Finished. Synced: ${totalSynced} | Failed: ${totalFailed}`,
@@ -265,6 +291,20 @@ export const forceOrderSync = async (store, filters) => {
 
     for (const o of orders) {
       try {
+        // ── Check local order lock (manual edits) ──────
+        const existingOrder = await prisma.order.findUnique({
+          where: {
+            storeId_wooOrderId: {
+              storeId: store.id,
+              wooOrderId: o.id,
+            },
+          },
+          select: { id: true, isManuallyEdited: true },
+        });
+
+        if (existingOrder?.isManuallyEdited) {
+          continue;
+        }
         // ── Customer name ──────────────────────────────
         const customerName =
           `${o.billing?.first_name || ""} ${o.billing?.last_name || ""}`.trim() ||

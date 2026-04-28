@@ -3,7 +3,7 @@ import { Printer, Pencil, Trash, X } from "lucide-react";
 
 const columnHelper = createColumnHelper();
 
-export const columns = ({ onRemoveItem, onEditShipping }) => [
+export const columns = ({ onRemoveItem, onEditShipping, onCreateLabel }) => [
   // Checkbox
   columnHelper.display({
     id: "select",
@@ -197,7 +197,7 @@ export const columns = ({ onRemoveItem, onEditShipping }) => [
           </button>
           <button
             className="hover:text-gray-500 cursor-pointer"
-            onClick={() => onEditShipping?.(row)}
+            onClick={() => onCreateLabel?.(row)}
           >
             <Pencil size={16} />
           </button>

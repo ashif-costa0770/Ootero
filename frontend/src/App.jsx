@@ -19,6 +19,7 @@ import Tracking from "./pages/admin/Tracking";
 import Manifest from "./pages/admin/Manifest";
 import Payloads from "./pages/admin/Payloads";
 import Store from "./pages/admin/Store";
+import CreateLabel from "./pages/admin/CreateLabel";
 function App() {
   return (
     <>
@@ -44,6 +45,7 @@ function App() {
           <Route element={<Layout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="woocommerce/:storeId/orders" element={<Orders />} />
+            <Route path="woocommerce/:storeId/orders/:orderId/create-label" element={<CreateLabel />} />
             <Route path="woocommerce/:storeId/orders/:statusKey" element={<Orders />} />
             <Route path="woocommerce/manifest" element={<Manifest />} />
             <Route path="woocommerce/tracking" element={<Tracking />} />
