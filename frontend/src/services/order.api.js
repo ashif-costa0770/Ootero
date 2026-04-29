@@ -24,3 +24,11 @@ export const removeOrderItem = async (orderId, orderItemId) =>
 //! update shipping address
 export const updateShippingAddress = async (orderId, data) =>
   api.put(`/orders/${orderId}/shipping`, data);
+
+//! update package info
+export const updatePackageInfo = async (orderId, data) =>
+  api.put(`/orders/${orderId}/package`, data);
+
+//! change status for selected orders
+export const changeOrderStatus = async (orderIds, status) =>
+  api.put("/orders/bulk/status", { orderIds, status });

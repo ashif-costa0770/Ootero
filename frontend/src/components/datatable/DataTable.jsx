@@ -11,13 +11,16 @@ import {
   Funnel,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Send,
 } from "lucide-react";
-import { triggerOrderSync } from "../../services/order.api";
+import { changeOrderStatus, triggerOrderSync } from "../../services/order.api";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ColumnFilterDropdown from "./ColumnFilterDropdown";
 import ForceSyncForm from "../form/ForceSyncForm";
+import AddTagButton from "../button/AddTagButton";
 
 const columnOptions = [
   { id: "orderInfo", label: "Order Info" },
@@ -27,6 +30,16 @@ const columnOptions = [
   { id: "dimensions", label: "Dimensions" },
   { id: "total", label: "Total Spent" },
   { id: "actions", label: "Actions" },
+];
+
+const orderStatusOptions = [
+  { label: "Unpaid", value: "pending" },
+  { label: "Awaiting Process", value: "processing" },
+  // { label: "Issue", value: "on-hold" },
+  { label: "Hold", value: "on-hold" },
+  // { label: "Pick & Pack", value: "processing" },
+  { label: "Shipped", value: "completed" },
+  { label: "Cancelled", value: "cancelled" },
 ];
 
 export default function DataTable({
@@ -40,6 +53,9 @@ export default function DataTable({
   onPrevPage,
   onPageChange,
   onLimitChange,
+  selectedOrderIds = [],
+  onSelectedOrderIdsChange,
+  onStatusUpdated,
 }) {
   const { storeId } = useParams();
   const [loading, setLoading] = useState(false);
@@ -56,6 +72,10 @@ export default function DataTable({
   });
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const [tempVisibility, setTempVisibility] = useState(columnVisibility);
+  const [showSelectMenu, setShowSelectMenu] = useState(false);
+  const [showAddTagButton, setShowAddTagButton] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedTagLabel, setSelectedTagLabel] = useState("");
 
   const handleOpenColumnMenu = () => {
     setTempVisibility(columnVisibility); // copy current applied state
@@ -65,6 +85,29 @@ export default function DataTable({
   const handleApplyColumns = () => {
     setColumnVisibility(tempVisibility);
     setShowColumnMenu(false);
+  };
+
+  const handleSendBulkShipment = async (e) => {
+    e.preventDefault();
+
+    if (!selectedCount || !selectedTag) return;
+
+    try {
+      const res = await changeOrderStatus(selectedOrderIds, selectedTag);
+      const message =
+        res?.data?.message ||
+        `Status updated for ${selectedCount} selected orders`;
+      toast.success(message);
+      onSelectedOrderIdsChange?.([]);
+      setSelectedTag("");
+      setSelectedTagLabel("");
+      setShowAddTagButton(false);
+      onStatusUpdated?.();
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Failed to update order status";
+      toast.error(message);
+    }
   };
 
   const handleResetColumns = () => {
@@ -82,6 +125,43 @@ export default function DataTable({
     // close dropdown
     setShowColumnMenu(false);
   };
+
+  const selectedCount = selectedOrderIds.length;
+  const allOrderIds = Array.isArray(data) ? data.map((row) => row.id) : [];
+
+  const handleSelectAll = () => {
+    onSelectedOrderIdsChange?.(allOrderIds);
+    setShowSelectMenu(false);
+  };
+
+  const handleSelectNone = () => {
+    onSelectedOrderIdsChange?.([]);
+    setShowSelectMenu(false);
+  };
+
+  const handleActionClick = () => {
+    if (!selectedCount) return;
+    setShowAddTagButton((prev) => !prev);
+  };
+
+  const handleBulkShipment = () => {
+    if (!selectedCount) return;
+    toast.info(`Create bulk shipment for ${selectedCount} selected orders`);
+  };
+
+  const handleTagSelect = (tag) => {
+    setSelectedTag(tag.value);
+    setSelectedTagLabel(tag.label);
+    setShowAddTagButton(false);
+  };
+
+  useEffect(() => {
+    if (!selectedCount) {
+      setShowAddTagButton(false);
+      setSelectedTag("");
+      setSelectedTagLabel("");
+    }
+  }, [selectedCount]);
 
   //! Sync orders from WooCommerce
   const handleSync = async () => {
@@ -159,6 +239,80 @@ export default function DataTable({
   }
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowSelectMenu((prev) => !prev)}
+            className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+          >
+            {selectedCount} Selected
+            <ChevronDown size={14} />
+          </button>
+
+          {showSelectMenu && (
+            <div className="absolute left-0 top-full z-20 mt-1 min-w-[120px] rounded-md border border-gray-200 bg-white shadow-lg">
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={handleSelectNone}
+                className="block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
+                None
+              </button>
+            </div>
+          )}
+        </div>
+
+        {selectedCount > 0 && (
+          <>
+          {/* Action button */}
+            <button
+              type="button"
+              onClick={handleActionClick}
+              className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 cursor-pointer"
+            >
+              {selectedTagLabel || "Action"}
+              <ChevronDown size={14} />
+            </button>
+          {/* Add tag button */}
+            {showAddTagButton && (
+              <AddTagButton
+                tags={orderStatusOptions}
+                onTagSelect={handleTagSelect}
+              />
+            )}
+            {/* Create bulk shipment button */}
+            <button
+              type="button"
+              onClick={handleBulkShipment}
+              className="rounded-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 cursor-pointer"
+            >
+              Create Bulk Shipment
+            </button>
+
+            {selectedTag && (
+              <button
+                type="submit"
+                onClick={handleSendBulkShipment}
+                className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-100 p-1.5 text-sm text-gray-700 hover:bg-gray-200 cursor-pointer"
+                title="Submit"
+              >
+                <Send size={18} />
+              </button>
+            )}
+            
+           
+          </>
+        )}
+      </div>
+
       {/* Top bar options */}
       <div className="flex items-center justify-between">
         {/* Sync and create order */}

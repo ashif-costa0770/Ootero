@@ -36,7 +36,10 @@ export const updateShippingAddressSchema = z.object({
     .trim()
     .min(1, { message: "Shipping address 1 is required" }),
   shippingAddress2: z.string().trim().optional(),
-  shippingCity: z.string().trim().min(1, { message: "Shipping city is required" }),
+  shippingCity: z
+    .string()
+    .trim()
+    .min(1, { message: "Shipping city is required" }),
   shippingState: z
     .string()
     .trim()
@@ -49,23 +52,18 @@ export const updateShippingAddressSchema = z.object({
 
 //! Ship To Form Validation
 export const shipToSchema = z.object({
-  firstName: z.string().trim().min(1, "First name is required"),
-  lastName: z.string().trim().optional(),
-  companyName: z.string().trim().optional(),
-  email: z.string().trim().email("Enter a valid email").optional().or(z.literal("")),
-  phone: z.string().trim().optional(),
-  googleSearchAddress: z
-    .string()
-    .trim()
-    .min(1, "Google Search Address is required"),
-  addressLine1: z.string().trim().min(1, "Address line 1 is required"),
-  addressLine2: z.string().trim().optional(),
-  suburb: z.string().trim().min(1, "Suburb is required"),
-  state: z.string().trim().min(1, "State is required"),
-  postcode: z.string().trim().min(1, "Postcode is required"),
-  country: z.string().trim().min(1, "Country/Region is required"),
+  shippingFirstName: z.string().trim().min(1, "First name is required"),
+  shippingLastName: z.string().trim().optional(),
+  shippingCompany: z.string().trim().optional(),
+  shippingPhone: z.string().trim().optional(),
+  googleSearchAddress: z.string().trim().optional(),
+  shippingAddress1: z.string().trim().min(1, "Address line 1 is required"),
+  shippingAddress2: z.string().trim().optional(),
+  shippingCity: z.string().trim().min(1, "Suburb is required"),
+  shippingState: z.string().trim().min(1, "State is required"),
+  shippingPostcode: z.string().trim().min(1, "Postcode is required"),
+  shippingCountry: z.string().trim().min(1, "Country/Region is required"),
 });
-
 
 //! From Address Form Validation
 export const fromAddressSchema = z.object({
@@ -79,13 +77,13 @@ export const fromAddressSchema = z.object({
 
 //! Package Info Form Validation
 export const packageInfoSchema = z.object({
-  consignment: z.string().trim().min(1, "Consignment is required"),
+  consignment: z.string().trim().optional(),
   qty: z.coerce.number().min(1, "Qty must be at least 1"),
   weight: z.coerce.number().min(0, "Weight must be 0 or greater"),
   length: z.coerce.number().min(0, "Length must be 0 or greater"),
   width: z.coerce.number().min(0, "Width must be 0 or greater"),
   height: z.coerce.number().min(0, "Height must be 0 or greater"),
-  packageReference: z.string().trim().min(1, "Package reference is required"),
+  packageReference: z.coerce.number().min(1, "Package reference is required"),
   coverAmount: z.coerce.number().min(0, "Cover amount must be 0 or greater"),
   orderNote: z.string().trim().optional(),
 });

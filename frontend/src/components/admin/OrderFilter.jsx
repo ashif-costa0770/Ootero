@@ -27,6 +27,7 @@ export default function OrderFilter({ statusCounts }) {
           label="Cancelled"
           icon={<Trash size={14}  />}
           active={statusKey === "cancelled"}
+          count = {statusCounts?.cancelled || 0}
           onClick={() => goToStatus("cancelled")}
         />
       </div>
@@ -43,6 +44,7 @@ export default function OrderFilter({ statusCounts }) {
         <Pill
           label="Unpaid"
           active={statusKey === "pending"}
+          count = {statusCounts?.pending || 0}
           onClick={() => goToStatus("pending")}
         />
         <DashedH />
@@ -61,6 +63,7 @@ export default function OrderFilter({ statusCounts }) {
           <Pill
             label="Hold"
             active={statusKey === "onhold"}
+            count = {statusCounts?.["on-hold"] || 0}
             onClick={() => goToStatus("onhold")}
           />
          
@@ -76,6 +79,7 @@ export default function OrderFilter({ statusCounts }) {
         <Pill
           label="Shipped"
           active={statusKey === "completed"}
+          count = {statusCounts?.completed || 0}
           onClick={() => goToStatus("completed")}
         />
       </div>

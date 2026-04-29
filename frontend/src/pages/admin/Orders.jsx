@@ -21,6 +21,7 @@ const Orders = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -104,6 +105,10 @@ const Orders = () => {
     setPage(1);
   }, [storeId, statusKey]);
 
+  useEffect(() => {
+    setSelectedOrderIds([]);
+  }, [orders]);
+
   const handleOpenShippingEditModal = (order) => {
     setSelectedOrderForShippingEdit(order);
   };
@@ -144,6 +149,9 @@ const Orders = () => {
         onRemoveItem={handleRemoveItem}
         onEditShipping={handleOpenShippingEditModal}
         onCreateLabel={handleCreateLabel}
+        selectedOrderIds={selectedOrderIds}
+        onSelectedOrderIdsChange={setSelectedOrderIds}
+        onStatusUpdated={fetchOrders}
       />
 
       {selectedOrderForShippingEdit && (

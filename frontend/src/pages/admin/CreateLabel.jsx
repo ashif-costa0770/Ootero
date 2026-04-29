@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getOrderById } from "../../services/order.api";
+import googleMapIcon from "../../assets/g_mp_c.svg";
+import { getOrderById, updatePackageInfo } from "../../services/order.api";
 import {
   MapPin,
   Pencil,
@@ -10,10 +11,12 @@ import {
   Home,
   FileText,
   Truck,
+  ChevronDown,
 } from "lucide-react";
 import ShipToForm from "../../components/form/ShipToForm";
 import FromAddressForm from "../../components/form/FromAddressForm";
 import PackageInfoForm from "../../components/form/PackageInfoForm";
+import { toast } from "sonner";
 
 const money = (value) => {
   const num = Number(value ?? 0);
@@ -41,32 +44,49 @@ export default function CreateLabel() {
   const [showFromAddressForm, setShowFromAddressForm] = useState(false);
   const [showPackageInfoForm, setShowPackageInfoForm] = useState(false);
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      if (!storeId || !orderId) {
-        setError("Missing store or order details.");
-        setLoading(false);
-        return;
-      }
+  const fetchOrder = useCallback(async () => {
+    if (!storeId || !orderId) {
+      setError("Missing store or order details.");
+      setLoading(false);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        setError("");
-        const res = await getOrderById(storeId, orderId);
-        setOrder(res?.data?.data || null);
-      } catch (err) {
-        setError(
-          err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            "Failed to fetch order details.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrder();
+    try {
+      setLoading(true);
+      setError("");
+      const res = await getOrderById(storeId, orderId);
+      setOrder(res?.data?.data || null);
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Failed to fetch order details.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }, [storeId, orderId]);
+
+  const handlePackageInfoSubmit = async (values) => {
+    try {
+      const response = await updatePackageInfo(orderId, values);
+      const message =
+        response?.data?.message || "Package info updated successfully";
+      toast.success(message);
+      setShowPackageInfoForm(false);
+      await fetchOrder();
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Failed to update package info.";
+      toast.error(message);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrder();
+  }, [fetchOrder]);
 
   const items = Array.isArray(order?.items) ? order.items : [];
   const firstItem = items[0] || null;
@@ -74,7 +94,10 @@ export default function CreateLabel() {
     firstItem?.product?.dimensions || firstItem?.dimensions || {};
 
   const displayName = useMemo(() => {
-    if (order?.customerName) return order.customerName;
+    if (order?.shippingFirstName && order?.shippingLastName)
+      return `${order.shippingFirstName} ${order.shippingLastName}`;
+    if (order?.shippingFirstName) return order.shippingFirstName;
+    if (order?.shippingLastName) return order.shippingLastName;
     return "N/A";
   }, [order]);
 
@@ -129,34 +152,45 @@ export default function CreateLabel() {
                   <button className="cursor-pointer bg-blue-500 text-white px-3 py-1.5 text-sm font-medium rounded-md">
                     Address Valid
                   </button>
-                  <button className="cursor-pointer text-blue-500 px-3 rounded-md" onClick={() => setShowFromAddressForm(!showFromAddressForm)}>
-                    <Pencil size={20} />
+                  <button
+                    className="cursor-pointer text-blue-500 px-3 rounded-md"
+                    onClick={() => setShowFromAddressForm(!showFromAddressForm)}
+                  >
+                    {showFromAddressForm ? (
+                      <ChevronDown size={20} />
+                    ) : (
+                      <Pencil size={20} />
+                    )}
                   </button>
                 </div>
               </div>
 
               {showFromAddressForm ? (
                 <div className="px-4 py-4">
-                  <FromAddressForm order={order} submitLabel="Update" />
+                  <FromAddressForm
+                    order={order}
+                    submitLabel="Update"
+                    onSuccess={() => setShowFromAddressForm(false)}
+                  />
                 </div>
               ) : (
                 <div className="px-4 py-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
-                <div className=" flex items-center gap-2">
-                  {" "}
-                  <User size={18} className="text-gray-800" />{" "}
-                  <span className="text-gray-700">{displayName}</span>
+                  <div className=" flex items-center gap-2">
+                    {" "}
+                    <User size={18} className="text-gray-800" />{" "}
+                    <span className="text-gray-700">{displayName}</span>
+                  </div>
+                  <div className=" flex items-center gap-2">
+                    {" "}
+                    <Home size={28} className="text-gray-800" />{" "}
+                    <span className="text-gray-700">{shippingAddress}</span>
+                  </div>
+                  <div className=" flex items-center gap-2 ms-11">
+                    {" "}
+                    <Phone size={18} className="text-gray-800" />{" "}
+                    <span className="text-gray-700">{shippingPhone}</span>
+                  </div>
                 </div>
-                <div className=" flex items-center gap-2">
-                  {" "}
-                  <Home size={28} className="text-gray-800" />{" "}
-                  <span className="text-gray-700">{shippingAddress}</span>
-                </div>
-                <div className=" flex items-center gap-2">
-                  {" "}
-                  <Phone size={18} className="text-gray-800" />{" "}
-                  <span className="text-gray-700">{shippingPhone}</span>
-                </div>
-              </div>
               )}
             </section>
 
@@ -178,31 +212,48 @@ export default function CreateLabel() {
                     className="cursor-pointer text-blue-500 px-3 rounded-md"
                     onClick={() => setShowShipToForm(!showShipToForm)}
                   >
-                    <Pencil size={20} />
+                    {showShipToForm ? (
+                      <ChevronDown size={20} />
+                    ) : (
+                      <Pencil size={20} />
+                    )}
                   </button>
                 </div>
               </div>
               {showShipToForm ? (
                 <div className="px-4 py-4">
-                <ShipToForm
-                  order={order}
-                  submitLabel="Update"
-                />
+                  <ShipToForm
+                    order={order}
+                    onSuccess={async () => {
+                      await fetchOrder();
+                      setShowShipToForm(false);
+                    }}
+                    submitLabel="Update"
+                  />
                 </div>
               ) : (
                 <div className="px-4 py-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
                   <div className=" flex items-center gap-2">
-                    {" "}
                     <User size={18} className="text-gray-800" />{" "}
                     <span className="text-gray-700">{displayName}</span>
                   </div>
                   <div className=" flex items-center gap-2">
-                    {" "}
-                    <Home size={28} className="text-gray-800" />{" "}
+                    <Home size={24} className="text-gray-800" />{" "}
                     <span className="text-gray-700">{shippingAddress}</span>
                   </div>
+
                   <div className=" flex items-center gap-2">
-                    {" "}
+                    <img
+                      src={googleMapIcon}
+                      onClick={() => {
+                        window.open(
+                          `https://www.google.com/maps/search/?api=1&query=${shippingAddress}`,
+                          "_blank",
+                        );
+                      }}
+                      alt="Google Map"
+                      className="cursor-pointer text-gray-800 w-5 h-5 me-4"
+                    />
                     <Phone size={18} className="text-gray-800" />{" "}
                     <span className="text-gray-700">{shippingPhone}</span>
                   </div>
@@ -224,44 +275,55 @@ export default function CreateLabel() {
                   <button className="cursor-pointer bg-blue-500 text-white px-3 py-1.5 text-sm font-medium rounded-md">
                     Package Valid
                   </button>
-                  <button className="cursor-pointer text-blue-500 px-3 rounded-md" onClick={() => setShowPackageInfoForm(!showPackageInfoForm)}>
-                    <Pencil size={20} />
+                  <button
+                    className="cursor-pointer text-blue-500 px-3 rounded-md"
+                    onClick={() => setShowPackageInfoForm(!showPackageInfoForm)}
+                  >
+                    {showPackageInfoForm ? (
+                      <ChevronDown size={20} />
+                    ) : (
+                      <Pencil size={20} />
+                    )}
                   </button>
                 </div>
               </div>
 
               {showPackageInfoForm ? (
                 <div className="px-4 py-4">
-                  <PackageInfoForm item={firstItem} order={order} submitLabel="Update" />
+                  <PackageInfoForm
+                    order={order}
+                    submitLabel="Update"
+                    onSubmit={handlePackageInfoSubmit}
+                  />
                 </div>
               ) : (
-              <div className="px-4 py-4 text-sm text-gray-700 space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      Qty: {firstItem?.quantity ?? "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      Weight:{" "}
-                      {firstItem?.product?.weight ?? firstItem?.weight ?? "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      (L x W x H): {firstItemDimensions?.length ?? "-"} x{" "}
-                      {firstItemDimensions?.width ?? "-"} x{" "}
-                      {firstItemDimensions?.height ?? "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      Reference: {firstItem?.sku || order.orderNumber || "-"}
-                    </p>
+                <div className="px-4 py-4 text-sm text-gray-700 space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <p className="text-sm text-gray-600">
+                        Qty: {firstItem?.quantity ?? "-"}
+                      </p>
+                    </div>
+                    <div className="-ms-4">
+                      <p className="text-sm text-gray-600">
+                        Weight:{" "}
+                        {firstItem?.product?.weight ?? firstItem?.weight ?? "-"}
+                      </p>
+                    </div>
+                    <div className="-ms-8">
+                      <p className="text-sm text-gray-600">
+                        (L x W x H): {firstItemDimensions?.length ?? "-"} x{" "}
+                        {firstItemDimensions?.width ?? "-"} x{" "}
+                        {firstItemDimensions?.height ?? "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">
+                        Reference: {order?.wooOrderId ?? order?.id ?? "-"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
               )}
             </section>
           </div>

@@ -15,12 +15,15 @@ export default function OrdersTable({
   onRemoveItem,
   onEditShipping,
   onCreateLabel,
+  selectedOrderIds,
+  onSelectedOrderIdsChange,
+  onStatusUpdated,
 }) {
   return (
     <div className="p-4 bg-white rounded-xl shadow">
       <DataTable
         data={orders}
-        columns={columns({ onRemoveItem, onEditShipping, onCreateLabel })}
+        columns={columns({ onRemoveItem, onEditShipping, onCreateLabel, selectedOrderIds, onSelectedOrderIdsChange, orders })}
         loading={loading}
         error={error}
         pagination={pagination}
@@ -30,6 +33,9 @@ export default function OrdersTable({
         onLimitChange={onLimitChange}
         search={search}
         onSearchChange={onSearchChange}
+        selectedOrderIds={selectedOrderIds}
+        onSelectedOrderIdsChange={onSelectedOrderIdsChange}
+        onStatusUpdated={onStatusUpdated}
       />
     </div>
   );

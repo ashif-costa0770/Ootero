@@ -3,13 +3,55 @@ import { Printer, Pencil, Trash, X } from "lucide-react";
 
 const columnHelper = createColumnHelper();
 
-export const columns = ({ onRemoveItem, onEditShipping, onCreateLabel }) => [
+export const columns = ({
+  onRemoveItem,
+  onEditShipping,
+  onCreateLabel,
+  selectedOrderIds = [],
+  onSelectedOrderIdsChange,
+  orders = [],
+}) => [
   // Checkbox
   columnHelper.display({
     id: "select",
-    cell: () => (
-      <input type="checkbox" className="text-gray-700 cursor-pointer" />
-    ),
+    header: () => {
+      const allIds = orders.map((o) => o.id);
+      const allSelected =
+        allIds.length > 0 &&
+        allIds.every((id) => selectedOrderIds.includes(id));
+
+      return (
+        <input
+          type="checkbox"
+          checked={allSelected}
+          onChange={(e) => {
+            onSelectedOrderIdsChange?.(e.target.checked ? allIds : []);
+          }}
+          className="text-gray-700 cursor-pointer"
+        />
+      );
+    },
+    cell: (info) => {
+      const row = info.row.original;
+      const checked = selectedOrderIds.includes(row.id);
+
+      return (
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => {
+            if (e.target.checked) {
+              onSelectedOrderIdsChange?.([...selectedOrderIds, row.id]);
+            } else {
+              onSelectedOrderIdsChange?.(
+                selectedOrderIds.filter((id) => id !== row.id),
+              );
+            }
+          }}
+          className="text-gray-700 cursor-pointer"
+        />
+      );
+    },
   }),
 
   // ORDER INFO
@@ -190,25 +232,25 @@ export const columns = ({ onRemoveItem, onEditShipping, onCreateLabel }) => [
     cell: (info) => {
       const row = info.row.original;
       return (
-      <div className="flex flex-col justify-center">
-        <div className="flex gap-2 justify-center text-gray-700 ">
-          <button className="hover:text-gray-500 cursor-pointer">
-            <Printer size={16} />
-          </button>
-          <button
-            className="hover:text-gray-500 cursor-pointer"
-            onClick={() => onCreateLabel?.(row)}
-          >
-            <Pencil size={16} />
-          </button>
-          <button className="bg-red-100 text-red-500 rounded-full p-1 hover:bg-red-200 hover:text-red-500 cursor-pointer">
-            <Trash size={16} />
+        <div className="flex flex-col justify-center">
+          <div className="flex gap-2 justify-center text-gray-700 ">
+            <button className="hover:text-gray-500 cursor-pointer">
+              <Printer size={16} />
+            </button>
+            <button
+              className="hover:text-gray-500 cursor-pointer"
+              onClick={() => onCreateLabel?.(row)}
+            >
+              <Pencil size={16} />
+            </button>
+            <button className="bg-red-100 text-red-500 rounded-full p-1 hover:bg-red-200 hover:text-red-500 cursor-pointer">
+              <Trash size={16} />
+            </button>
+          </div>
+          <button className="bg-blue-500 text-white rounded p-1 mt-3 text-xs font-medium hover:bg-blue-600 cursor-pointer">
+            Confirm
           </button>
         </div>
-        <button className="bg-blue-500 text-white rounded p-1 mt-3 text-xs font-medium hover:bg-blue-600 cursor-pointer">
-          Confirm
-        </button>
-      </div>
       );
     },
   }),

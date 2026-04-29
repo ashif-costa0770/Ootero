@@ -8,13 +8,12 @@ const inputClass =
 
 const PackageInfoForm = ({
   order,
-  item,
-  onSubmit,
+  onSubmit,                 
   onAddPackage,
   submitLabel = "Save & Get Quote",
 }) => {
   const firstItem = Array.isArray(order?.items) ? order.items[0] : null;
-  const dims = firstItem?.product?.dimensions || firstItem?.dimensions || {};
+  const dims = firstItem?.product?.dimensions || {};
 
   const {
     register,
@@ -26,11 +25,11 @@ const PackageInfoForm = ({
     defaultValues: {
       consignment: "Choose Package",
       qty: firstItem?.quantity ?? 1,
-      weight: firstItem?.product?.weight ?? firstItem?.weight ?? 0,
+      weight: firstItem?.product?.weight ?? 0,
       length: dims?.length ?? 0,
       width: dims?.width ?? 0,
       height: dims?.height ?? 0,
-      packageReference: order?.id || "",
+      packageReference: order?.wooOrderId ?? order?.id ?? "",
       coverAmount: 100,
       orderNote: order?.note || "",
     },
@@ -40,16 +39,16 @@ const PackageInfoForm = ({
     if (!order) return;
 
     const item = Array.isArray(order?.items) ? order.items[0] : null;
-    const itemDims = item?.product?.dimensions || item?.dimensions || {};
+    const itemDims = item?.product?.dimensions || {};
 
     reset({
       consignment: "Choose Package",
       qty: item?.quantity ?? 1,
-      weight: item?.product?.weight ?? item?.weight ?? 0,
+      weight: item?.product?.weight ?? 0,
       length: itemDims?.length ?? 0,
       width: itemDims?.width ?? 0,
       height: itemDims?.height ?? 0,
-      packageReference:order?.id || "",
+      packageReference: order?.wooOrderId ?? order?.id ?? "",
       coverAmount: 100,
       orderNote: order?.note || "",
     });

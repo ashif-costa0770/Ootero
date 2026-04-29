@@ -2,6 +2,8 @@ import prisma from "../lib/prisma.js";
 import { removeOrderItemService } from "../services/order.service.js";
 import { successResponse, errorResponse } from "../utils/respones.js";
 import { updateShippingAddressService } from "../services/order.service.js";
+import { updatePackageInfoService } from "../services/order.service.js";
+import { changeOrderStatusService } from "../services/order.service.js";
 
 //! get Orders
 
@@ -81,7 +83,7 @@ export const getOrders = async (req, res) => {
           shippingState: true,
           shippingPostcode: true,
           shippingCountry: true,
-          shippingPhone: true,                                      
+          shippingPhone: true,
           shippingMethod: true,
           shippingTotal: true,
           createdAt: true,
@@ -227,11 +229,10 @@ export const removeOrderItemController = async (req, res) => {
     return errorResponse(
       res,
       error.statusCode || 500,
-      error.message || "Error in removing order item"
+      error.message || "Error in removing order item",
     );
   }
 };
-
 
 //! update order
 export const updateShippingAddressController = async (req, res) => {
@@ -243,12 +244,71 @@ export const updateShippingAddressController = async (req, res) => {
     const result = await updateShippingAddressService({
       orderId,
       userId,
-      data: req.body
-    })
+      data: req.body,
+    });
 
-    return successResponse(res, 200, "Shipping address updated successfully", result);
+    return successResponse(
+      res,
+      200,
+      "Shipping address updated successfully",
+      result,
+    );
   } catch (error) {
-    return errorResponse(res, error.statusCode || 500, error.message || "Error in updating order");
-    
+    return errorResponse(
+      res,
+      error.statusCode || 500,
+      error.message || "Error in updating order",
+    );
   }
-}
+};
+
+//! update package info
+export const updatePackageInfoController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const orderId = parseInt(req.params.orderId);
+
+    //service
+    const result = await updatePackageInfoService({
+      orderId,
+      userId,
+      data: req.body,
+    });
+
+    return successResponse(res, 200, "Package info updated successfully");
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.statusCode || 500,
+      error.message || "Error in updating package info",
+    );
+  }
+};
+
+//! change the order status
+export const changeOrderStatusController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const orderIds = req.body.orderIds;
+    const status = req.body.status;
+
+    const result = await changeOrderStatusService({
+      orderIds,
+      status,
+      userId,
+    });
+
+    return successResponse(
+      res,
+      200,
+      "Order status updated successfully",
+      result,
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.statusCode || 500,
+      error.message || "Error in changing order status",
+    );
+  }
+};
