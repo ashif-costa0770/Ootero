@@ -18,8 +18,9 @@ import Orders from "./pages/admin/Orders";
 import Tracking from "./pages/admin/Tracking";
 import Manifest from "./pages/admin/Manifest";
 import Payloads from "./pages/admin/Payloads";
-import Store from "./pages/admin/Store";
+import Stores from "./pages/admin/Stores";
 import CreateLabel from "./pages/admin/CreateLabel";
+import StoreSettings from "./pages/admin/StoreSettings";
 function App() {
   return (
     <>
@@ -50,7 +51,8 @@ function App() {
             <Route path="woocommerce/manifest" element={<Manifest />} />
             <Route path="woocommerce/tracking" element={<Tracking />} />
             <Route path="woocommerce/payloads" element={<Payloads />} />
-            <Route path="stores" element={<Store />} />
+            <Route path="stores" element={<Stores />} />
+            <Route path="stores/:storeId/settings" element={<StoreSettings />} />
           </Route>
         </Route>
 

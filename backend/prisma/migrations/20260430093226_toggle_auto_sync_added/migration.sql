@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `stores` ADD COLUMN `orderAutoSyncEnabled` BOOLEAN NOT NULL DEFAULT true;

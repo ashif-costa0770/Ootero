@@ -78,6 +78,7 @@ model Store {
   status          StoreStatus   @default(ACTIVE)
   createdAt       DateTime @default(now())
   lastOrderSyncAt DateTime?
+  orderAutoSyncEnabled Boolean @default(true)
 
   orders          Order[]
   products        Product[]

@@ -118,3 +118,49 @@ export const triggerProductSync = async (req, res) => {
   }
 };
 
+//! enable/disable order auto sync
+export const toggleOrderAutoSync = async (req, res) => {
+  try {
+    const storeId = parseInt(req.params.storeId);
+    const userId = req.user.id;
+    const  enabled  = req.body.enabled;
+
+    if (typeof enabled !== "boolean") {
+      return errorResponse(res, 400, "Enabled must be a boolean", "Invalid request body");
+    }
+
+    //find the store
+    const store = await prisma.store.findFirst({
+      where: {
+        id: storeId,
+        userId,
+      },
+    });
+
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    //update the store
+    await prisma.store.update({
+      where: { id: storeId },
+      data: { orderAutoSyncEnabled: enabled },
+    });
+
+    return successResponse(
+      res,
+      200,
+      enabled
+        ? "Order auto-sync resumed for this store"
+        : "Order auto-sync paused for this store",
+    );
+
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in toggling order auto sync",
+      error.message,
+    );
+  }
+};

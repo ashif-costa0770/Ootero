@@ -14,6 +14,7 @@ const runOrderAutoSync = async () => {
     const stores = await prisma.store.findMany({
       where: {
         status: "ACTIVE",
+        orderAutoSyncEnabled: true,
       },
     });
 

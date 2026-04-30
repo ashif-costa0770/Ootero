@@ -9,6 +9,10 @@ export const triggerForceOrderSync = async (storeId, data) =>
   api.post(`/sync/${storeId}/orders/force`, data);
 
 
+//! enable/disable order auto sync
+export const toggleOrderAutoSync = async (storeId, enabled) =>
+  api.patch(`/sync/${storeId}/orders/auto-sync/toggle`, { enabled });
+
 //! get Orders
 export const getOrders = async (storeId, params = {}) =>
   api.get(`/orders/${storeId}`, { params });

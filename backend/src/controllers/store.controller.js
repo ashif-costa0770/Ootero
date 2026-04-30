@@ -120,22 +120,23 @@ export const getStoreDetails = async (req, res) => {
       0,
     );
 
-     // 5. Get revenue from sales report
-     let totalRevenue = "0.00";
-     try {
-       const salesRes = await client.get("/reports/sales", {
-         params: {
-           date_min: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
-             .toISOString()
-             .split("T")[0],
-           date_max: new Date().toISOString().split("T")[0],
-         },
-       });
-       totalRevenue = salesRes.data?.total_sales || "0.00";
-     } catch (_) {
-       // sales report may not always be available
-
-     }
+    // 5. Get revenue from sales report
+    let totalRevenue = "0.00";
+    try {
+      const salesRes = await client.get("/reports/sales", {
+        params: {
+          date_min: new Date(
+            new Date().setFullYear(new Date().getFullYear() - 1),
+          )
+            .toISOString()
+            .split("T")[0],
+          date_max: new Date().toISOString().split("T")[0],
+        },
+      });
+      totalRevenue = salesRes.data?.total_sales || "0.00";
+    } catch (_) {
+      // sales report may not always be available
+    }
 
     return successResponse(res, 200, "Store details fetched successfully", {
       store: {
@@ -156,9 +157,7 @@ export const getStoreDetails = async (req, res) => {
           onHold: totalOnHold,
           completed: totalCompleted,
           cancelled: totalCancelled,
-         
         },
-       
       },
     });
   } catch (error) {
@@ -170,3 +169,124 @@ export const getStoreDetails = async (req, res) => {
     );
   }
 };
+
+//! Get all stores
+export const getAllStores = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Find all stores for the user
+    const stores = await prisma.store.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        platform: true,
+        storeUrl: true,
+        createdAt: true,
+        status: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!stores || stores.length === 0) {
+      return successResponse(res, 200, "No stores found", []);
+    }
+
+    return successResponse(res, 200, "All stores fetched successfully", stores);
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in getting all stores",
+      error.message,
+    );
+  }
+};
+
+//! Get single store
+export const getSingleStore = async (req, res) => {
+  try {
+    const storeId = parseInt(req.params.storeId);
+    const userId = req.user.id;
+
+    // validate storeId
+    if (isNaN(storeId)) {
+      return errorResponse(res, 400, "Invalid store ID");
+    }
+
+    // Find store
+    const store = await prisma.store.findFirst({
+      where: {
+        id: storeId,
+        userId: userId
+      },
+      select: {
+        id: true,
+        name: true,
+        platform: true,
+        storeUrl: true,
+        consumerKey: true,
+        consumerSecret: true,
+      }
+    });
+    
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    return successResponse(res, 200, "Store fetched successfully", store);
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in getting single store",
+      error.message,
+    );
+    
+  }
+}
+
+
+//! Test store connection
+export const testStoreConnection = async (req, res) => {
+  try {
+    const storeId  = parseInt(req.params.storeId);
+
+    const store = await prisma.store.findFirst({
+      where: {
+        id: storeId
+      }
+    })
+
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    const client = createWooClient(store);
+
+    const response = await client.get("/data");
+
+    if (response.status === 200) {
+      return successResponse(res, 200, "Store connection tested successfully");
+    } else {
+      return errorResponse(res, 500, "Failed to test store connection");
+    }
+    
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in testing store connection",
+      error.message,
+    );
+    
+  }
+}
