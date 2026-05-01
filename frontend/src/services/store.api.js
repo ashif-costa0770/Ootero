@@ -1,6 +1,6 @@
 import api from "../lib/api";
 
-
+//! Connect store
 export const connectStore = async (data) =>
   api.post("/store/connect", data);
 
@@ -20,3 +20,6 @@ export const getStoreDetails = async (storeId) =>
 export const testStoreConnection = async (storeId) =>
   api.get(`/store/${storeId}/test`);
 
+//! Update store settings
+export const updateStoreSettings = async (storeId, data) =>
+  api.put(`/store/${storeId}`, data);

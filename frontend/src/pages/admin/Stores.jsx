@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import StoresTable from "../../components/datatable/StoresTable";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import AddStoreModal from "../../components/model/AddStoreModal";
 import { getAllStores } from "../../services/store.api";
 import { toast } from "sonner";
@@ -38,6 +38,11 @@ const Stores = () => {
       ),
     );
   };
+
+  //! Loading
+  if (loading) return <div className="flex justify-center items-center h-full">
+    <Loader2 size={24} className="animate-spin text-blue-600" />
+  </div>
 
   return (
     <div className="bg-white m-4 p-6 rounded-md shadow-md ">

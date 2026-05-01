@@ -1,6 +1,6 @@
 import prisma from "../lib/prisma.js";
 import createWooClient from "../lib/woocommerce.js";
-import { encrypt } from "../utils/encryption.js";
+import { decrypt, encrypt } from "../utils/encryption.js";
 import { errorResponse, successResponse } from "../utils/respones.js";
 import { verifyWooCommerce } from "../utils/verifyPlatform.js";
 
@@ -66,7 +66,7 @@ export const connectStore = async (req, res) => {
   }
 };
 
-//! get Store details
+//! get Store Stats
 export const getStoreDetails = async (req, res) => {
   const storeId = parseInt(req.params.storeId);
 
@@ -178,7 +178,6 @@ export const getAllStores = async (req, res) => {
     // Find all stores for the user
     const stores = await prisma.store.findMany({
       where: { userId: userId },
-      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         name: true,
@@ -226,7 +225,7 @@ export const getSingleStore = async (req, res) => {
     const store = await prisma.store.findFirst({
       where: {
         id: storeId,
-        userId: userId
+        userId: userId,
       },
       select: {
         id: true,
@@ -235,14 +234,22 @@ export const getSingleStore = async (req, res) => {
         storeUrl: true,
         consumerKey: true,
         consumerSecret: true,
-      }
+      },
     });
-    
+
     if (!store) {
       return errorResponse(res, 404, "Store not found");
     }
 
-    return successResponse(res, 200, "Store fetched successfully", store);
+    //decrypt credentials
+    const decryptedKey = decrypt(store.consumerKey);
+    const decryptedSecret = decrypt(store.consumerSecret);    
+
+    return successResponse(res, 200, "Store fetched successfully", {
+      ...store,
+      consumerKey: decryptedKey,
+      consumerSecret: decryptedSecret,
+    });
   } catch (error) {
     return errorResponse(
       res,
@@ -250,21 +257,19 @@ export const getSingleStore = async (req, res) => {
       "Error in getting single store",
       error.message,
     );
-    
   }
-}
-
+};
 
 //! Test store connection
 export const testStoreConnection = async (req, res) => {
   try {
-    const storeId  = parseInt(req.params.storeId);
+    const storeId = parseInt(req.params.storeId);
 
     const store = await prisma.store.findFirst({
       where: {
-        id: storeId
-      }
-    })
+        id: storeId,
+      },
+    });
 
     if (!store) {
       return errorResponse(res, 404, "Store not found");
@@ -275,11 +280,14 @@ export const testStoreConnection = async (req, res) => {
     const response = await client.get("/data");
 
     if (response.status === 200) {
-      return successResponse(res, 200, "Store connection tested successfully");
+      return successResponse(
+        res,
+        200,
+        `Store ${store.id} connection tested successfully`,
+      );
     } else {
       return errorResponse(res, 500, "Failed to test store connection");
     }
-    
   } catch (error) {
     return errorResponse(
       res,
@@ -287,6 +295,75 @@ export const testStoreConnection = async (req, res) => {
       "Error in testing store connection",
       error.message,
     );
-    
   }
-}
+};
+
+//! Update store settings
+export const updateStoreSettings = async (req, res) => {
+  try {
+    const storeId = parseInt(req.params.storeId);
+    const userId = req.user.id;
+    const { name, storeUrl, consumerKey, consumerSecret } = req.body;
+
+    //find the store
+    const store = await prisma.store.findFirst({
+      where: {
+        id: storeId,
+        userId: userId,
+      },
+    });
+
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    //verify credentials
+    let isValid = false;
+    if (store.platform === "woocommerce") {
+      isValid = await verifyWooCommerce({
+        url: storeUrl,
+        key: consumerKey,
+        secret: consumerSecret,
+      });
+    }
+    if (!isValid) {
+      return errorResponse(res, 400, "Invalid store credentials");
+    }
+
+    //encrypt credentials
+    const encryptedKey = encrypt(consumerKey);
+    const encryptedSecret = encrypt(consumerSecret);
+
+    //update the store
+    const updatedStore = await prisma.store.update({
+      where: { id: storeId },
+      data: {
+        name,
+        storeUrl,
+        consumerKey: encryptedKey,
+        consumerSecret: encryptedSecret,
+      },
+      select: {
+        id: true,
+        name: true,
+        platform: true,
+        storeUrl: true,
+        status: true,
+      },
+    });
+
+    return successResponse(
+      res,
+      200,
+      "Store settings updated successfully",
+      updatedStore,
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in updating store settings",
+      error.message,
+    );
+  }
+};

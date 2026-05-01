@@ -15,7 +15,7 @@ import { triggerOrderSync } from "../../services/order.api";
 import { useNavigate } from "react-router-dom";
 
 const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
-  const [loading, setLoading] = useState(false);
+  const [testConnectionLoadingId, setTestConnectionLoadingId] = useState(null);
   const [syncToggleLoadingId, setSyncToggleLoadingId] = useState(null);
   const [orderSyncLoadingId, setOrderSyncLoadingId] = useState(null);
   const MIN_TOGGLE_LOADING_MS = 1200; //for smooth transition
@@ -38,7 +38,7 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
   //! Test store connection
   const handleTestConnection = async (storeId) => {
     try {
-      setLoading(true);
+      setTestConnectionLoadingId(storeId);
       const res = await testStoreConnection(storeId);
       toast.success(
         res?.data?.message || "Store connection tested successfully",
@@ -48,7 +48,7 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
         error?.response?.data?.message || "Failed to test store connection";
       toast.error(message);
     } finally {
-      setLoading(false);
+      setTestConnectionLoadingId(null);
     }
   };
 
@@ -125,9 +125,18 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
               </td>
               <td className="p-3 text-gray-500">{store.platform}</td>
               <td className="p-3 text-gray-500 cursor-pointer">
-                <div className="ml-6 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <User className="w-5 h-5 text-gray-500" />
+                <div className="ml-6 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center relative group">
+                  <span
+                      className="pointer-events-none absolute bottom-full z-70 mb-1 left-1/2 -translate-x-1/2 
+                                 whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white 
+                                 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    >
+                      {`${store.user.firstName} ${store.user.lastName}`}
+                    </span>
+                  <User className="w-4 h-4 text-gray-500" />
+                 
                 </div>
+                
               </td>
               <td className="p-3 text-gray-500">
                 {new Date(store.createdAt).toISOString().slice(0, 10) +
@@ -141,17 +150,18 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
 
               <td className="p-3">
                 <div className="flex items-center gap-2">
+                  {/* test connection */}
                   <button
                     className="bg-green-500 p-1.5 rounded text-white cursor-pointer flex items-center gap-2 group relative"
                     onClick={() => handleTestConnection(store.id)}
-                    disabled={loading}
+                    disabled={testConnectionLoadingId === store.id}
                   >
-                    {loading ? (
+                    {testConnectionLoadingId === store.id ? (
                       <Loader size={16} className="animate-spin" />
                     ) : (
                       <ArrowRight size={16} />
                     )}
-                    {/* title Test connection */}
+                   
                     <span
                       className="pointer-events-none absolute bottom-full z-70 mb-1 left-1/2 -translate-x-1/2 
                                  whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white 
@@ -161,6 +171,7 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
                     </span>
                   </button>
 
+                  {/* toggle auto sync */}
                   <button
                     className="bg-yellow-500 p-1.5 rounded text-white cursor-pointer group relative"
                     onClick={() => handleToggleAutoSync(store)}
@@ -191,6 +202,7 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
                     </span>
                   </button>
 
+                  {/* sync orders */}
                   <button
                     className="bg-blue-500 p-1.5 rounded text-white cursor-pointer group relative"
                     onClick={() => handleOrdersSync(store.id)}
@@ -211,6 +223,7 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
                     </span>
                   </button>
 
+                  {/* store settings */}
                   <button
                     className="bg-indigo-500 p-1.5 rounded text-white cursor-pointer group relative"
                     onClick={() =>

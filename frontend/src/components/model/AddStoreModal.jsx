@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { addStoreSchema } from "../../validations/store.validation";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { connectStore } from "../../services/store.api";
 
 const AddStoreModal = ({ isOpen, onClose }) => {
+  const [loading, setLoading] = useState(false);
   const {
     handleSubmit,
+    reset,
     register,
     formState: { errors },
   } = useForm({
@@ -21,9 +24,23 @@ const AddStoreModal = ({ isOpen, onClose }) => {
     },
   });
 
-  const handleSubmitClick = (data) => {
-    toast.success("Store added successfully");
-    onClose();
+  const handleSubmitClick = async (data) => {
+    try {
+      setLoading(true);
+      const response = await connectStore(data);
+      console.log(response);
+      if (response.status === 201) {
+        toast.success(response?.data?.message || "Store added successfully");
+        reset();
+        onClose();
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Failed to add store";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;

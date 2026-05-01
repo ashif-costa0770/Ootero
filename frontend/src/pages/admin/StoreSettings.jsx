@@ -3,6 +3,7 @@ import StoreSettingForm from "../../components/form/StoreSettingForm";
 import { useParams } from "react-router-dom";
 import { getSingleStore } from "../../services/store.api";
 import { toast } from "sonner";
+import AuspostSettingForm from "../../components/form/AuspostSettingForm";
 
 const tabs = [
   "Store Setting",
@@ -59,10 +60,13 @@ const StoreSettings = () => {
 
       {/* heading and form */}
       <div className="mt-12 ">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">{activeTab}</h2>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-2">{activeTab}</h2>
         <div className="py-6 px-10 bg-white rounded-lg shadow-sm">
           {activeTab === "Store Setting" && (
             <StoreSettingForm store={store} />
+          )}
+          {activeTab === "Auspost Setting" && (
+            <AuspostSettingForm />
           )}
 
           {/* Later you plug other tabs */}
