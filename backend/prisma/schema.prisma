@@ -30,22 +30,30 @@ enum StoreStatus {
   PENDING_VERIFICATION
 }
 
+enum AccountModeEnum {
+  SANDBOX
+  PRODUCTION
+}
 
+enum YesNoEnum {
+  YES
+  NO
+}
 
 model User {
-  id            Int      @id @default(autoincrement())
-  firstName     String
-  lastName      String
-  email         String   @unique
-  phone         String?
-  password      String
-  country       String?
-  company       String?
-  shipmentRange String?
-  role          Role     @default(USER)
-  isVerified    Boolean  @default(false)
-  verificationToken String?
-  createdAt     DateTime @default(now())
+  id                 Int                  @id @default(autoincrement())
+  firstName          String
+  lastName           String
+  email              String               @unique
+  phone              String?
+  password           String
+  country            String?
+  company            String?
+  shipmentRange      String?
+  role               Role                 @default(USER)
+  isVerified         Boolean              @default(false)
+  verificationToken  String?
+  createdAt          DateTime             @default(now())
   PasswordResetToken PasswordResetToken[]
   Store              Store[]
 
@@ -61,55 +69,101 @@ model PasswordResetToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@map("password_reset_tokens")
- 
 }
 
 model Store {
-  id              Int      @id @default(autoincrement())
-  userId          Int
-  name            String
-  platform        Platform  
-  storeUrl        String?
-  consumerKey     String?  // encrypted
-  consumerSecret  String?  // encrypted
-  status          StoreStatus   @default(ACTIVE)
-  createdAt       DateTime @default(now())
-  lastOrderSyncAt DateTime?
-  orderAutoSyncEnabled Boolean @default(true)
+  id                   Int         @id @default(autoincrement())
+  userId               Int
+  name                 String
+  platform             Platform
+  storeUrl             String?
+  consumerKey          String? // encrypted
+  consumerSecret       String? // encrypted
+  status               StoreStatus @default(ACTIVE)
+  createdAt            DateTime    @default(now())
+  lastOrderSyncAt      DateTime?
+  orderAutoSyncEnabled Boolean     @default(true)
 
-  orders          Order[]
-  products        Product[]
+  // ✅ Generic store/business info
+  companyName String?
+  email       String?
+  phone       String?
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address     String?
+  suburb      String?
+  state       String?
+  postcode    String?
+  countryCode String?
+
+  // Relations
+  orders   Order[]
+  products Product[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  auspostSetting AuspostSetting?
 
   @@index([userId])
   @@index([platform])
   @@map("stores")
-  
 }
 
+// Auspost Settings
+model AuspostSetting {
+  id      Int @id @default(autoincrement())
+  storeId Int @unique
+
+  // 🔐 API credentials
+  accountNumber String
+  accountMode   AccountModeEnum // "SANDBOX" | "PRODUCTION"
+  apiKey        String // encrypted
+  apiPassword   String // encrypted
+
+  // ⚙️ Shipping configuration
+  combineConsignment   YesNoEnum
+  allowPartialDelivery YesNoEnum
+  postBranding         YesNoEnum
+
+  labelLayoutParcel  String
+  labelLayoutExpress String
+
+  leftSideSpace String
+  topSideSpace  String
+
+  streetType String? // comma separated
+  autoPrint  YesNoEnum
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("auspost_settings")
+}
 
 model Order {
-  id                 Int       @id @default(autoincrement())
-  storeId            Int
-  wooOrderId         Int
-  orderNumber        String
+  id          Int    @id @default(autoincrement())
+  storeId     Int
+  wooOrderId  Int
+  orderNumber String
 
   // Status
-  status             String
-  fulfillmentStatus  String    @default("unfulfilled")
-  needsProcessing    Boolean   @default(false)
+  status            String
+  fulfillmentStatus String  @default("unfulfilled")
+  needsProcessing   Boolean @default(false)
 
   // Financials
-  currency           String
-  currencySymbol     String?
-  totalAmount        Float
-  shippingTotal      Float     @default(0)
-  taxTotal           Float     @default(0)
-  totalDiscount      Float     @default(0)
+  currency       String
+  currencySymbol String?
+  totalAmount    Float
+  shippingTotal  Float   @default(0)
+  taxTotal       Float   @default(0)
+  totalDiscount  Float   @default(0)
 
   // Payment
   paymentMethod      String?
@@ -117,50 +171,50 @@ model Order {
   shippingMethod     String?
 
   // Customer
-  customerName       String
-  customerEmail      String
-  customerPhone      String?
+  customerName  String
+  customerEmail String
+  customerPhone String?
 
   // Billing 
-  billingFirstName   String?
-  billingLastName    String?
-  billingCompany     String?
-  billingAddress1    String?
-  billingAddress2    String?
-  billingCity        String?
-  billingState       String?
-  billingPostcode    String?
-  billingCountry     String?
-  billingEmail       String?
-  billingPhone       String?
+  billingFirstName String?
+  billingLastName  String?
+  billingCompany   String?
+  billingAddress1  String?
+  billingAddress2  String?
+  billingCity      String?
+  billingState     String?
+  billingPostcode  String?
+  billingCountry   String?
+  billingEmail     String?
+  billingPhone     String?
 
   // Shipping
-  shippingFirstName  String?
-  shippingLastName   String?
-  shippingCompany    String?
-  shippingAddress1   String?
-  shippingAddress2   String?
-  shippingCity       String?
-  shippingState      String?
-  shippingPostcode   String?
-  shippingCountry    String?
-  shippingPhone      String?
+  shippingFirstName String?
+  shippingLastName  String?
+  shippingCompany   String?
+  shippingAddress1  String?
+  shippingAddress2  String?
+  shippingCity      String?
+  shippingState     String?
+  shippingPostcode  String?
+  shippingCountry   String?
+  shippingPhone     String?
   // Notes
-  note               String?   @db.Text
-  isManuallyEdited   Boolean   @default(false)
+  note              String? @db.Text
+  isManuallyEdited  Boolean @default(false)
 
   // Dates
-  datePaid           DateTime?
-  dateCompleted      DateTime?
-  createdAt          DateTime
-  updatedAt          DateTime  @updatedAt
-  syncedAt           DateTime  @default(now())
+  datePaid      DateTime?
+  dateCompleted DateTime?
+  createdAt     DateTime
+  updatedAt     DateTime  @updatedAt
+  syncedAt      DateTime  @default(now())
 
   // Relations
-  store              Store     @relation(fields: [storeId], references: [id])
-  items              OrderItem[]
+  store Store       @relation(fields: [storeId], references: [id])
+  items OrderItem[]
 
-  @@unique([storeId, wooOrderId])   // 👈 scoped per store
+  @@unique([storeId, wooOrderId]) // 👈 scoped per store
   @@index([storeId])
   @@index([status])
   @@index([createdAt])
@@ -168,64 +222,64 @@ model Order {
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
-  orderId   Int
-  productId Int?       // FK → products.id (will be set after product sync) 
-  wooProductId Int?     // raw WooCommerce product_id 
-  name      String
-  sku       String?
-  quantity  Int
-  price     Float
-  subtotal  Float   @default(0)  // 👈 quantity * price
-  imageUrl  String?
+  id           Int     @id @default(autoincrement())
+  orderId      Int
+  productId    Int? // FK → products.id (will be set after product sync) 
+  wooProductId Int? // raw WooCommerce product_id 
+  name         String
+  sku          String?
+  quantity     Int
+  price        Float
+  subtotal     Float   @default(0) // 👈 quantity * price
+  imageUrl     String?
 
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@map("order_items")
 }
 
 model Product {
-  id            Int      @id @default(autoincrement())
-  storeId       Int
-  wooProductId  Int
+  id           Int @id @default(autoincrement())
+  storeId      Int
+  wooProductId Int
 
   // Core
-  name          String
-  slug          String?
-  permalink     String?
-  type          String?   // simple, variable, grouped
-  status        String    // publish, draft, private
+  name      String
+  slug      String?
+  permalink String?
+  type      String? // simple, variable, grouped
+  status    String // publish, draft, private
 
   // Pricing
-  price         Float?
-  regularPrice  Float?
-  salePrice     Float?
-  onSale        Boolean  @default(false)
+  price        Float?
+  regularPrice Float?
+  salePrice    Float?
+  onSale       Boolean @default(false)
 
   // Inventory
   sku           String?
-  manageStock   Boolean  @default(false)
-  stockQuantity Int?     // null when manageStock is false
-  stockStatus   String   @default("instock") // instock, outofstock, onbackorder
+  manageStock   Boolean @default(false)
+  stockQuantity Int? // null when manageStock is false
+  stockStatus   String  @default("instock") // instock, outofstock, onbackorder
 
   // Shipping
-  weight        Float?
-  dimensions    Json?    // { length, width, height }
+  weight     Float?
+  dimensions Json? // { length, width, height }
 
   // Taxonomy (stored as JSON arrays)
-  categories    Json?    // [{ id, name, slug }]
-  images        Json?    // [{ id, src, name, alt }]
-  attributes    Json?    // [{ id, name, options: [] }]
+  categories Json? // [{ id, name, slug }]
+  images     Json? // [{ id, src, name, alt }]
+  attributes Json? // [{ id, name, options: [] }]
 
   // Sync
-  syncedAt      DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  syncedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  store         Store      @relation(fields: [storeId], references: [id])
-  orderItems    OrderItem[]
+  store      Store       @relation(fields: [storeId], references: [id])
+  orderItems OrderItem[]
 
   @@unique([storeId, wooProductId])
   @@index([storeId])

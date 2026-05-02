@@ -23,3 +23,11 @@ export const testStoreConnection = async (storeId) =>
 //! Update store settings
 export const updateStoreSettings = async (storeId, data) =>
   api.put(`/store/${storeId}`, data);
+
+//! Get auspost settings
+export const getAuspostSettings = async (storeId) =>
+  api.get(`/store/${storeId}/auspost-settings`);
+
+//! Upsert auspost settings
+export const upsertAuspostSettings = async (storeId, data) =>
+  api.put(`/store/${storeId}/auspost-settings`, data);

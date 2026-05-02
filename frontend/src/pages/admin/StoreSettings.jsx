@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { getSingleStore } from "../../services/store.api";
 import { toast } from "sonner";
 import AuspostSettingForm from "../../components/form/AuspostSettingForm";
+import ShippingRuleForm from "../../components/form/ShippingRuleForm";
 
 const tabs = [
   "Store Setting",
@@ -66,7 +67,10 @@ const StoreSettings = () => {
             <StoreSettingForm store={store} />
           )}
           {activeTab === "Auspost Setting" && (
-            <AuspostSettingForm />
+            <AuspostSettingForm  storeId={storeId}/>
+          )}
+          {activeTab === "Shipping Rule" && (
+            <ShippingRuleForm />
           )}
 
           {/* Later you plug other tabs */}
