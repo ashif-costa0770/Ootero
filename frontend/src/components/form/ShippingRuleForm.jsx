@@ -1,21 +1,26 @@
 // components/ShippingRuleForm.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { shippingRuleSchema } from "../../validations/store.validation";
-
-const ShippingRuleForm = () => {
+import {
+  getAuspostShippingRules,
+  updateAuspostShippingRules,
+} from "../../services/store.api";
+import { toast } from "sonner";
+const ShippingRuleForm = ({ storeId }) => {
+  const [loading, setLoading] = useState(false);
   const {
     register,
     control,
     handleSubmit,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(shippingRuleSchema),
     defaultValues: {
-      rules: [
-        { ruleName: "", postageService: "", shippingMethod: "" },
-      ],
+      rules: [{ ruleName: "", postageService: "", shippingMethod: "" }],
     },
   });
 
@@ -24,89 +29,160 @@ const ShippingRuleForm = () => {
     name: "rules",
   });
 
-  const onSubmit = (data) => {
-    console.log("SUBMIT:", data.rules);
+  //! Fetch auspost shipping rules
+  useEffect(() => {
+    const fetchShippingRules = async () => {
+      try {
+        setLoading(true);
+        const response = await getAuspostShippingRules(storeId);
+        const data = response.data.data;
+        console.log("AUSPOST SHIPPING RULES:", data);
+        reset({ rules: data });
+      } catch (error) {
+        const message =
+          error?.response?.data?.message ||
+          "Failed to fetch auspost shipping rules";
+        toast.error(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchShippingRules();
+  }, [storeId, reset]);
+
+  //! Handle submit
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      const response = await updateAuspostShippingRules(storeId, data);
+      if (response.status === 200) {
+        toast.success(
+          response?.data?.message ||
+            "Auspost shipping rules updated successfully",
+        );
+      }
+      const saved = response.data.data || {};
+      console.log("SAVED:", saved);
+      reset(saved);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to update auspost shipping rules";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white border border-gray-300 rounded-lg ">
+  //! handle remove
+  const handleRemoveRule = async (index) => {
+    const rules = getValues("rules") ?? [];
+    const updated = rules.filter((_, i) => i !== index);
+  
+    if (updated.length === 0) {
+      toast.error("At least one shipping rule is required.");
+      return;
+    }
+  
+    try {
+      setLoading(true);
+      await updateAuspostShippingRules(storeId, { rules: updated });
+      reset({ rules: updated });
+      toast.success("Shipping rule removed");
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        "Failed to remove shipping rule";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };                           
 
-      {/* Header */}
-      <div className="flex justify-between items-center border-b border-gray-200 py-4 px-10 text-sm font-medium text-gray-600">
-        <div>Rule Name</div>
-        <div>Postage Service</div>
-        <div>Shipping Method</div>
-        <div>Action</div>
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="overflow-hidden rounded-lg border border-gray-200 bg-white font-sans text-gray-800 shadow-sm"
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] border-collapse text-sm">
+          <thead>
+            <tr>
+              <th className="border border-[#e0e0e0] bg-white px-4 py-3 text-left font-semibold text-gray-700 w-[22%]">
+                Rule Name
+              </th>
+              <th className="border border-[#e0e0e0] bg-white px-4 py-3 text-left font-semibold text-gray-700 w-[28%]">
+                Postage Service
+              </th>
+              <th className="border border-[#e0e0e0] bg-white px-4 py-3 text-left font-semibold text-gray-700 w-[28%]">
+                Shipping Method
+              </th>
+              <th className="border border-[#e0e0e0] bg-white px-4 py-3 text-center font-semibold text-gray-700 w-[16%]">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {fields.map((field, index) => (
+              <tr key={field.id}>
+                <td className="border border-[#e0e0e0] align-top px-4 py-3 text-gray-600">
+                  <input
+                    {...register(`rules.${index}.ruleName`)}
+                    placeholder="Enter Rule Name"
+                    className="w-full min-w-0 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  {errors.rules?.[index]?.ruleName && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.rules[index].ruleName.message}
+                    </p>
+                  )}
+                </td>
+                <td className="border border-[#e0e0e0] align-top px-4 py-3 text-gray-600">
+                  <input
+                    {...register(`rules.${index}.postageService`)}
+                    placeholder="Enter Postage Service (add multiple separated by commas)"
+                    className="w-full min-w-0 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  {errors.rules?.[index]?.postageService && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.rules[index].postageService.message}
+                    </p>
+                  )}
+                </td>
+                <td className="border border-[#e0e0e0] align-top px-4 py-3 text-gray-600">
+                  <select
+                    {...register(`rules.${index}.shippingMethod`)}
+                    className="w-full min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Choose Shipping Method</option>
+                    <option value="PARCEL POST + SIGNATURE">
+                      PARCEL POST + SIGNATURE
+                    </option>
+                    <option value="EXPRESS POST">EXPRESS POST</option>
+                  </select>
+                  {errors.rules?.[index]?.shippingMethod && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.rules[index].shippingMethod.message}
+                    </p>
+                  )}
+                </td>
+                <td className="border border-[#e0e0e0] px-4 py-3 text-center align-middle">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRule(index)}
+                    disabled={fields.length === 1}
+                    className="cursor-pointer inline-flex min-w-[5.5rem] items-center justify-center rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* Rows */}
-      {fields.map((field, index) => (
-        <div
-          key={field.id}
-          className="flex justify-between items-center border-b border-gray-200 py-4 px-10 text-sm font-medium text-gray-600"
-        >
-          {/* Rule Name */}
-          <div>
-            <input
-              {...register(`rules.${index}.ruleName`)}
-              placeholder="Enter Rule Name"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            />
-            {errors.rules?.[index]?.ruleName && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.rules[index].ruleName.message}
-              </p>
-            )}
-          </div>
-
-          {/* Postage Service */}
-          <div>
-            <input
-              {...register(`rules.${index}.postageService`)}
-              placeholder="Enter Postage Service"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            />
-            {errors.rules?.[index]?.postageService && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.rules[index].postageService.message}
-              </p>
-            )}
-          </div>
-
-          {/* Shipping Method */}
-          <div>
-            <select
-              {...register(`rules.${index}.shippingMethod`)}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            >
-              <option value="">Choose Shipping Method</option>
-              <option value="standard">Standard</option>
-              <option value="express">Express</option>
-            </select>
-
-            {errors.rules?.[index]?.shippingMethod && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.rules[index].shippingMethod.message}
-              </p>
-            )}
-          </div>
-
-          {/* Action */}
-          <div>
-            <button
-              type="button"
-              onClick={() => remove(index)}
-              disabled={fields.length === 1}
-              className="bg-red-500 text-white px-3 py-2 rounded text-sm disabled:opacity-50 cursor-pointer"
-            >
-              Remove
-            </button>
-          </div>
-        </div>
-      ))}
-
-      {/* Footer */}
-      <div className="flex justify-end gap-3 mt-4">
+      <div className="flex justify-end gap-3 border-t border-[#e0e0e0] px-6 py-4">
         <button
           type="button"
           onClick={() =>
@@ -116,14 +192,13 @@ const ShippingRuleForm = () => {
               shippingMethod: "",
             })
           }
-          className="bg-blue-600 text-white px-4 py-2 rounded text-sm cursor-pointer"
+          className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
         >
           Add Row
         </button>
-
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded text-sm cursor-pointer"
+          className="cursor-pointer rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600"
         >
           Save
         </button>

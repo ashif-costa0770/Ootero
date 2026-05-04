@@ -137,6 +137,9 @@ model AuspostSetting {
   streetType String? // comma separated
   autoPrint  YesNoEnum
 
+  shippingRules Json?
+  packageSettings Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

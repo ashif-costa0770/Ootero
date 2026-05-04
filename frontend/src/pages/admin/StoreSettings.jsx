@@ -5,6 +5,9 @@ import { getSingleStore } from "../../services/store.api";
 import { toast } from "sonner";
 import AuspostSettingForm from "../../components/form/AuspostSettingForm";
 import ShippingRuleForm from "../../components/form/ShippingRuleForm";
+import PackageSettingsForm from "../../components/form/PackageSettingsForm";
+import DeclarationTable from "../../components/datatable/DeclarationTable";
+import AddDeclarationModel from "../../components/model/AddDeclarationModel";
 
 const tabs = [
   "Store Setting",
@@ -19,7 +22,7 @@ const StoreSettings = () => {
   const { storeId } = useParams();
   const [store, setStore] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const [showDeclarationModel, setShowDeclarationModel] = useState(false);
   //! Fetch store
   useEffect(() => {
     const fetchStore = async () => {
@@ -61,7 +64,14 @@ const StoreSettings = () => {
 
       {/* heading and form */}
       <div className="mt-12 ">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-2">{activeTab}</h2>
+        <div className="flex justify-between">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-2">{activeTab}</h2>
+          {activeTab === "Declaration Form" && (
+            <button onClick={() => setShowDeclarationModel(true)} className=" mb-4 text-sm bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600">
+              Add Declaration Form
+            </button>
+          )}
+        </div>
         <div className="py-6 px-10 bg-white rounded-lg shadow-sm">
           {activeTab === "Store Setting" && (
             <StoreSettingForm store={store} />
@@ -70,12 +80,20 @@ const StoreSettings = () => {
             <AuspostSettingForm  storeId={storeId}/>
           )}
           {activeTab === "Shipping Rule" && (
-            <ShippingRuleForm />
+            <ShippingRuleForm storeId={storeId} />
           )}
-
-          {/* Later you plug other tabs */}
+          {activeTab === "Package Settings" && (
+            <PackageSettingsForm storeId={storeId} />
+          )}
+          {activeTab === "Declaration Form" && (
+            <DeclarationTable />
+          )}
+         
         </div>
       </div>
+      {showDeclarationModel && (
+        <AddDeclarationModel onClose={() => setShowDeclarationModel(false)} />
+      )}
     </div>
   );
 };

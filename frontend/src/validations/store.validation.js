@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-const platforms = ["woocommerce", "shopify", "ebay", "magento", "bigcommerce", "prestashop"];
+const platforms = [
+  "woocommerce",
+  "shopify",
+  "ebay",
+  "magento",
+  "bigcommerce",
+  "prestashop",
+];
 
 const accountModes = ["SANDBOX", "PRODUCTION"];
 const yesNoEnum = ["YES", "NO"];
@@ -68,8 +75,12 @@ export const auspostSettingSchema = z.object({
     errorMap: () => ({ message: "Invalid post branding" }),
   }),
 
-  labelLayoutParcel: z.string().min(1, "Label layout for parcel post is required"),
-  labelLayoutExpress: z.string().min(1, "Label layout for express post is required"),
+  labelLayoutParcel: z
+    .string()
+    .min(1, "Label layout for parcel post is required"),
+  labelLayoutExpress: z
+    .string()
+    .min(1, "Label layout for express post is required"),
 
   leftSideSpace: z.string().min(1, "Label leftside space is required"),
   topSideSpace: z.string().min(1, "Label topside space is required"),
@@ -85,10 +96,74 @@ export const shippingRuleSchema = z.object({
   rules: z
     .array(
       z.object({
-        ruleName: z.string().min(1, "Required"),
-        postageService: z.string().min(1, "Required"),
-        shippingMethod: z.string().min(1, "Required"),
-      })
+        ruleName: z.string().min(1, "Rule name is required"),
+        postageService: z.string().min(1, "Postage service is required"),
+        shippingMethod: z.string().min(1, "Shipping method is required"),
+      }),
     )
     .min(1, "At least one rule is required"),
+});
+
+//! Package seeting validation
+
+export const packageSettingSchema = z
+  .object({
+    packages: z
+      .array(
+        z.object({
+          name: z.string().trim().min(1, "Required"),
+
+          weight: z.number().positive("Required"),
+          width: z.number().positive("Required"),
+          length: z.number().positive("Required"),
+          height: z.number().positive("Required"),
+
+          isDefault: z.boolean(),
+        }),
+      )
+      .min(1, "At least one package required"),
+  })
+  .refine(
+    (data) => {
+      const defaultCount = data.packages.filter((p) => p.isDefault).length;
+      return defaultCount === 1;
+    },
+    {
+      message: "Exactly one package must be set as default",
+      path: ["packages"],
+    },
+  );
+
+
+//! Declaration form validation
+//item component schema
+export const itemSchema = z.object({
+  description: z.string().min(1, "Required"),
+  quantity: z.number().min(1),
+  unitValue: z.number().min(0),
+  weight: z.number().min(0),
+
+  countryOfOrigin: z.string().optional(),
+  tariffCode: z.string().optional(),
+  tariffConcession: z.string().optional(),
+  sku: z.string().optional(),
+  reference: z.string().optional(),
+});
+
+//  declaration form schema
+export const declarationSchema = z.object({
+  itemDescription: z.string().min(1, "Item description is required"),
+  reason: z.string().min(1),
+  importRef: z.string().min(1, "Import reference is required"),
+  itemReference: z.string().min(1, "Item reference is required"),
+  descriptionOfOther: z.string().min(1, "Description of other is required"),
+  itemReference: z.string().min(1, "Item reference is required"),
+  itemLength: z.number().min(0, "Item length is required"),
+  itemHeight: z.number().min(0, "Item height is required"),
+  itemWeight: z.number().min(0, "Item weight is required"),
+  itemWidth: z.number().min(0, "Item width is required"),
+
+  hasCommercialValue: z.boolean(),
+
+  items: z.array(itemSchema).min(1, "At least one item required"),
 });

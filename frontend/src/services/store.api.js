@@ -31,3 +31,19 @@ export const getAuspostSettings = async (storeId) =>
 //! Upsert auspost settings
 export const upsertAuspostSettings = async (storeId, data) =>
   api.put(`/store/${storeId}/auspost-settings`, data);
+
+//! Get auspost shipping rules
+export const getAuspostShippingRules = async (storeId) =>
+  api.get(`/store/${storeId}/auspost-settings/shipping-rules`);
+
+//! Update auspost shipping rules
+export const updateAuspostShippingRules = async (storeId, data) =>
+  api.put(`/store/${storeId}/auspost-settings/shipping-rules`, data);
+
+//! Get package settings
+export const getPackageSettings = async (storeId) =>
+  api.get(`/store/${storeId}/auspost-settings/package-settings`);
+
+//! Update package settings
+export const updatePackageSettings = async (storeId, data) =>
+  api.put(`/store/${storeId}/auspost-settings/package-settings`, data);

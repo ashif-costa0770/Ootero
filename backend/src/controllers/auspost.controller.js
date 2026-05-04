@@ -26,6 +26,7 @@ function buildResponsePayload(store, auspost) {
     topSideSpace: auspost?.topSideSpace ?? "",
     streetType: auspost?.streetType ?? "",
     autoPrint: auspost?.autoPrint ?? "YES",
+    // shippingRules: auspost?.shippingRules != null ? auspost.shippingRules : [],
   };
 }
 
@@ -171,3 +172,212 @@ export const upsertAuspostSettings = async (req, res) => {
     );
   }
 };
+
+//! Update auspost shipping rules
+export const updateAuspostShippingRules = async (req, res) => {
+  try {
+    const storeId = parseInt(req.params.storeId);
+    const userId = req.user.id;
+    const { rules } = req.body;
+
+    //validate storeId
+    if (isNaN(storeId)) {
+      return errorResponse(res, 400, "Invalid store ID");
+    }
+
+    //find the store
+    const store = await prisma.store.findFirst({
+      where: { id: storeId, userId: userId },
+    });
+
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    const existing = await prisma.auspostSetting.findFirst({
+      where: { storeId: storeId },
+    });
+
+    if (!existing) {
+      return errorResponse(
+        res,
+        404,
+        "Auspost settings not fouund. Save Auspost settings first.",
+      );
+    }
+
+    await prisma.auspostSetting.update({
+      where: { storeId: storeId },
+      data: { shippingRules: rules },
+    });
+
+    return successResponse(
+      res,
+      200,
+      "Auspost shipping rules updated successfully",
+      {
+        rules,
+      },
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in updating auspost shipping rules",
+      error.message,
+    );
+  }
+};
+
+//! Get auspost shipping rules
+export const getAuspostShippingRules = async (req, res) => {
+  try {
+    const storeId = parseInt(req.params.storeId);
+    const userId = req.user.id;
+
+    //validate storeId
+    if (isNaN(storeId)) {
+      return errorResponse(res, 400, "Invalid store ID");
+    }
+
+    //find the store
+    const store = await prisma.store.findFirst({
+      where: { id: storeId, userId: userId },
+    });
+
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    //find the auspost settings
+    const auspost = await prisma.auspostSetting.findFirst({
+      where: { storeId: storeId },
+    });
+
+    let rules = [];
+    if (
+      auspost?.shippingRules != null &&
+      Array.isArray(auspost.shippingRules)
+    ) {
+      rules = auspost.shippingRules;
+    }
+
+    return successResponse(
+      res,
+      200,
+      "Auspost shipping rules fetched successfully",
+      rules,
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in getting auspost shipping rules",
+      error.message,
+    );
+  }
+};
+
+//! get package settings
+export const getPackageSettings = async (req, res) => {
+  try {
+    const storeId = parseInt(req.params.storeId);
+    const userId = req.user.id;
+
+    //validate storeId
+    if (isNaN(storeId)) {
+      return errorResponse(res, 400, "Invalid store ID");
+    }
+
+    //find the store
+    const store = await prisma.store.findFirst({
+      where: { id: storeId, userId: userId },
+    });
+
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    //find the auspost settings
+    const auspost = await prisma.auspostSetting.findFirst({
+      where: { storeId: storeId },
+    });
+
+    let packages = [];
+    if (
+      auspost?.packageSettings != null &&
+      Array.isArray(auspost.packageSettings)
+    ) {
+      packages = auspost.packageSettings;
+    }
+
+    return successResponse(
+      res,
+      200,
+      "Package settings fetched successfully",
+      packages,
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in getting package settings",
+      error.message,
+    );
+  }
+};
+
+
+//! update package settings
+export const updatePackageSettings = async (req, res) => {
+  try {
+    const storeId = parseInt(req.params.storeId);
+    const userId = req.user.id;
+    const { packages } = req.body;
+
+    //validate storeId
+    if (isNaN(storeId)) {
+      return errorResponse(res, 400, "Invalid store ID");
+    }
+
+    //find the store
+    const store = await prisma.store.findFirst({
+      where: { id: storeId, userId },
+    });
+    if (!store) {
+      return errorResponse(res, 404, "Store not found");
+    }
+
+    //find the auspost settings
+    const auspost = await prisma.auspostSetting.findFirst({
+      where: { storeId },
+    });
+
+    if (!auspost) {
+      return errorResponse(res, 404, "Auspost settings not fouund. Save Auspost settings first.");
+    }
+
+    //update the package settings
+    await prisma.auspostSetting.update({
+      where: { storeId },
+      data: { packageSettings: packages },
+    })
+
+    return successResponse(
+      res,
+      200,
+      "Package settings updated successfully",
+      packages,
+    );
+
+
+  } catch (error) {
+    return errorResponse(
+      res,
+      500,
+      "Error in updating package settings",
+      error.message,
+    );
+    
+  }
+}

@@ -68,3 +68,44 @@ export const auspostSettingSchema = z.object({
     errorMap: () => ({ message: "Invalid auto print" }),
   }),
 });
+
+//! Shipping Rule Validation
+export const auspostShippingRulesBodySchema = z.object({
+  rules: z
+    .array(
+      z.object({
+        ruleName: z.string().trim().min(1, "Rule name is required"),
+        postageService: z.string().trim().min(1, "Postage service is required"),
+        shippingMethod: z.string().trim().min(1, "Shipping method is required"),
+      }),
+    )
+    .min(1, "At least one rule is required"),
+});
+
+//! Package settings validation
+export const packageSettingSchema = z.object({
+    packages: z
+      .array(
+        z.object({
+          name: z.string().trim().min(1, "Package name is required"),
+
+          weight: z.number().positive("Weight is required"),
+          width: z.number().positive("Width is required"),
+          length: z.number().positive("Length is required"),
+          height: z.number().positive("Height is required"),
+
+          isDefault: z.boolean(),
+        }),
+      )
+      .min(1, "At least one package required"),
+  })
+  .refine(
+    (data) => {
+      const defaultCount = data.packages.filter((p) => p.isDefault).length;
+      return defaultCount === 1;
+    },
+    {
+      message: "Exactly one package must be set as default",
+      path: ["packages"],
+    },
+  );
