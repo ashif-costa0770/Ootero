@@ -47,3 +47,11 @@ export const getPackageSettings = async (storeId) =>
 //! Update package settings
 export const updatePackageSettings = async (storeId, data) =>
   api.put(`/store/${storeId}/auspost-settings/package-settings`, data);
+
+//! Get auspost declarations
+export const getAuspostDeclarations = async (storeId) =>
+  api.get(`/store/${storeId}/auspost-settings/declarations`);
+
+//! Update auspost declarations
+export const updateAuspostDeclarations = async (storeId, data) =>
+  api.put(`/store/${storeId}/auspost-settings/declarations`, data);

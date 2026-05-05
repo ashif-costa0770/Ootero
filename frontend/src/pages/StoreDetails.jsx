@@ -1,6 +1,6 @@
 // src/pages/StoreDetails.jsx
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { StatCard } from "../components/store/StatCard";
 import { StatusBadge } from "../components/store/StatusBadge";
 import { getStoreDetails } from "../services/store.api";
@@ -8,6 +8,7 @@ import { StoreInfoCard } from "../components/store/StoreInfoCard";
 
 export default function StoreDetails() {
   const { storeId } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -151,6 +152,16 @@ export default function StoreDetails() {
           {statCards.map((card) => (
             <StatCard key={card.label} {...card} />
           ))}
+        </div>
+
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/stores")}
+            className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+          >
+            Continue to Dashboard
+          </button>
         </div>
 
         {/* ── Bottom Row ── */}

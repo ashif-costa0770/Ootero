@@ -5,7 +5,7 @@ const inputClass =
 
 export default function ItemFields({ index, register, errors, remove }) {
   return (
-    <div className="border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50">
+    <div className="border border-gray-200 rounded-lg p-6 mb-6 bg-gray-100">
       <div className="flex justify-between mb-3">
         <h3 className="font-semibold text-lg">Item {index + 1}</h3>
         <button
@@ -126,6 +126,7 @@ export default function ItemFields({ index, register, errors, remove }) {
           </label>
           <input
             type="number"
+            step="0.01"
             {...register(`items.${index}.quantity`, { valueAsNumber: true })}
             placeholder="Quantity"
             className={inputClass}
@@ -143,6 +144,7 @@ export default function ItemFields({ index, register, errors, remove }) {
           </label>
           <input
             type="number"
+            step="0.01"
             {...register(`items.${index}.unitValue`, { valueAsNumber: true })}
             placeholder="Unit Value (AUD)"
             className={inputClass}
@@ -160,6 +162,7 @@ export default function ItemFields({ index, register, errors, remove }) {
           </label>
           <input
             type="number"
+            step="0.01"
             {...register(`items.${index}.weight`, { valueAsNumber: true })}
             placeholder="Weight (kg)"
             className={inputClass}

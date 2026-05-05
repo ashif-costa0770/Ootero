@@ -109,3 +109,39 @@ export const packageSettingSchema = z.object({
       path: ["packages"],
     },
   );
+
+
+//! Declaration line items (matches frontend itemSchema)
+const declarationItemSchema = z.object({
+  description: z.string().trim().min(1, "Description is required"),
+  quantity: z.number().min(1),
+  unitValue: z.number().min(0),
+  weight: z.number().min(0),
+  countryOfOrigin: z.string().optional(),
+  tariffCode: z.string().optional(),
+  tariffConcession: z.string().optional(),
+  sku: z.string().optional(),
+  reference: z.string().optional(),
+});
+
+//! One saved declaration record
+const declarationRecordSchema = z.object({
+  itemDescription: z.string().trim().min(1, "Item description is required"),
+  reason: z.string().min(1, "Reason is required"),
+  importRef: z.string().trim().min(1, "Import reference is required"),
+  itemReference: z.string().trim().min(1, "Item reference is required"),
+  descriptionOfOther: z.string().trim().min(1, "Description of other is required"),
+  itemLength: z.number().min(0),
+  itemHeight: z.number().min(0),
+  itemWeight: z.number().min(0),
+  itemWidth: z.number().min(0),
+  hasCommercialValue: z.boolean(),
+  items: z.array(declarationItemSchema).min(1, "At least one item required"),
+});
+
+//! PUT body: replace full list (same idea as shipping rules)
+export const auspostDeclarationsBodySchema = z.object({
+  declarations: z
+    .array(declarationRecordSchema)
+    .min(1, "At least one declaration is required"),
+});

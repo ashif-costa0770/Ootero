@@ -2,18 +2,23 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { declarationSchema } from "../../validations/store.validation";
 import ItemFields from "./ItemFields";
-import { BadgeAlert, X } from "lucide-react";
+import { BadgeAlert, Loader2, X } from "lucide-react";
+import { useState } from "react";
+import { getAuspostDeclarations, updateAuspostDeclarations } from "../../services/store.api";
+import { toast } from "sonner";
 
 const inputClass =
   "w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors";
 const selectClass =
   "w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors";
 
-export default function AddDeclarationModel({ onClose }) {
+export default function AddDeclarationModel({ onClose, storeId, onSaved }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(declarationSchema),
@@ -35,8 +40,29 @@ export default function AddDeclarationModel({ onClose }) {
     name: "items",
   });
 
-  const onSubmit = (data) => {
-    console.log("FORM DATA:", data);
+  const onSubmit = async (data) => {
+  try {
+    setIsSubmitting(true);
+    //fetch existing declarations
+    const existingRes = await getAuspostDeclarations(storeId);
+    const existng = Array.isArray(existingRes.data.data) ? existingRes.data.data : [];
+
+    //update existing declarations
+    const updated = [...existng, data];
+    const updateRes = await updateAuspostDeclarations(storeId, { declarations: updated });
+    if (updateRes.status === 200 || updateRes.status === 201) {
+      toast.success(updateRes?.data?.message || "Declaration added successfully");
+      reset();
+      onClose();
+      onSaved();
+    }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Failed to add declaration";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -152,6 +178,7 @@ export default function AddDeclarationModel({ onClose }) {
               </label>
               <input
                 type="number"
+                step="0.01"
                 {...register("itemLength", { valueAsNumber: true })}
                 placeholder="Enter length"
                 className={inputClass}
@@ -169,6 +196,7 @@ export default function AddDeclarationModel({ onClose }) {
               </label>
               <input
                 type="number"
+                step="0.01"
                 {...register("itemHeight", { valueAsNumber: true })}
                 placeholder="Enter height"
                 className={inputClass}
@@ -185,6 +213,7 @@ export default function AddDeclarationModel({ onClose }) {
               </label>
               <input
                 type="number"
+                step="0.01"
                 {...register("itemWeight", { valueAsNumber: true })}
                 placeholder="Enter weight"
                 className={inputClass}
@@ -201,6 +230,7 @@ export default function AddDeclarationModel({ onClose }) {
               </label>
               <input
                 type="number"
+                step="0.01"
                 {...register("itemWidth", { valueAsNumber: true })}
                 placeholder="Enter width"
                 className={inputClass}
@@ -254,9 +284,10 @@ export default function AddDeclarationModel({ onClose }) {
               </button>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className=" mt-2 px-6 h-9 flex items-center justify-center text-sm font-semibold bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700 transition-colors"
               >
-                Save
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
               </button>
             </div>
           </div>

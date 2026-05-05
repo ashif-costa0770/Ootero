@@ -23,6 +23,7 @@ const StoreSettings = () => {
   const [store, setStore] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showDeclarationModel, setShowDeclarationModel] = useState(false);
+  const [declarationRefresh, setDeclarationRefresh] = useState(0);
   //! Fetch store
   useEffect(() => {
     const fetchStore = async () => {
@@ -65,19 +66,22 @@ const StoreSettings = () => {
       {/* heading and form */}
       <div className="mt-12 ">
         <div className="flex justify-between">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-2">{activeTab}</h2>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+            {activeTab}
+          </h2>
           {activeTab === "Declaration Form" && (
-            <button onClick={() => setShowDeclarationModel(true)} className=" mb-4 text-sm bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600">
+            <button
+              onClick={() => setShowDeclarationModel(true)}
+              className=" mb-4 text-sm bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600"
+            >
               Add Declaration Form
             </button>
           )}
         </div>
         <div className="py-6 px-10 bg-white rounded-lg shadow-sm">
-          {activeTab === "Store Setting" && (
-            <StoreSettingForm store={store} />
-          )}
+          {activeTab === "Store Setting" && <StoreSettingForm store={store} />}
           {activeTab === "Auspost Setting" && (
-            <AuspostSettingForm  storeId={storeId}/>
+            <AuspostSettingForm storeId={storeId} />
           )}
           {activeTab === "Shipping Rule" && (
             <ShippingRuleForm storeId={storeId} />
@@ -86,13 +90,19 @@ const StoreSettings = () => {
             <PackageSettingsForm storeId={storeId} />
           )}
           {activeTab === "Declaration Form" && (
-            <DeclarationTable />
+            <DeclarationTable
+              storeId={storeId}
+              refreshKey={declarationRefresh}
+            />
           )}
-         
         </div>
       </div>
       {showDeclarationModel && (
-        <AddDeclarationModel onClose={() => setShowDeclarationModel(false)} />
+        <AddDeclarationModel
+          storeId={storeId}
+          onClose={() => setShowDeclarationModel(false)}
+          onSaved={() => setDeclarationRefresh((prev) => prev + 1)}
+        />
       )}
     </div>
   );

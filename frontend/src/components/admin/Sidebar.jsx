@@ -32,7 +32,7 @@ function Sidebar() {
   };
   return (
     <div className="py-4 px-2 flex flex-col items-start space-y-4 h-full">
-      <div className="max-w-32 ml-4 my-6">
+      <div className="max-w-32 ml-6 my-6">
         <Logo />
       </div>
 

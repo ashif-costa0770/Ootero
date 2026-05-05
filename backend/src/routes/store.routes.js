@@ -19,6 +19,8 @@ import {
   upsertAuspostSettings,
   updateAuspostShippingRules,
   getAuspostShippingRules,
+  getAuspostDeclarations,
+  updateAuspostDeclarations,
 } from "../controllers/auspost.controller.js";
 import { auspostShippingRulesBodySchema } from "../validations/store.validation.js";
 import {
@@ -26,6 +28,7 @@ import {
   updatePackageSettings,
 } from "../controllers/auspost.controller.js";
 import { packageSettingSchema } from "../validations/store.validation.js";
+import { auspostDeclarationsBodySchema } from "../validations/store.validation.js";
 
 const router = express.Router();
 
@@ -69,6 +72,19 @@ router.put(
   protect,
   validate(packageSettingSchema),
   updatePackageSettings,
+);
+
+//! Declaration routes
+router.get(
+  "/:storeId/auspost-settings/declarations",
+  protect,
+  getAuspostDeclarations,
+);
+router.put(
+  "/:storeId/auspost-settings/declarations",
+  protect,
+  validate(auspostDeclarationsBodySchema),
+  updateAuspostDeclarations,
 );
 
 //auspost settings routes
