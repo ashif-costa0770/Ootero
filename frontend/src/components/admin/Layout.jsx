@@ -8,7 +8,7 @@ function Layout() {
     <div className="flex h-screen overflow-hidden bg-gray-100">
       
       {/* Sidebar (fixed) */}
-      <div className={` ${sidebarOpen ? "w-58" : "w-0"} transition-all duration-100 h-full bg-slate-800 text-white`}>
+      <div className={` ${sidebarOpen ? "w-58" : "hidden"} transition-all duration-100 h-full bg-slate-800 text-white`}>
         <Sidebar />
       </div>
 

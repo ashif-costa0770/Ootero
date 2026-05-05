@@ -96,30 +96,6 @@ const PackageSettingsForm = ({ storeId }) => {
     }
   };
 
-  //! Handle remove
-  const handleRemovePackage = async (index) => {
-
-    const packages = getValues("packages") ?? [];
-    const updated = packages.filter((_, i) => i !== index);
-    if (updated.length === 0) {
-      toast.error("At least one package is required.");
-      return;
-    }
-    try {
-      setLoading(true);
-      await updatePackageSettings(storeId, { packages: updated });
-      reset({ packages: updated });
-      toast.success("Package removed");
-    } catch (error) {
-      const message =
-        error?.response?.data?.message ||
-        "Failed to remove package";
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -239,7 +215,7 @@ const PackageSettingsForm = ({ storeId }) => {
                 <td className="border border-[#e0e0e0] px-4 py-3 text-center align-middle">
                   <button
                     type="button"
-                    onClick={() => handleRemovePackage(index)}
+                    onClick={() => remove(index)}
                     disabled={fields.length === 1}
                     className="cursor-pointer inline-flex min-w-[5.5rem] items-center justify-center rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >

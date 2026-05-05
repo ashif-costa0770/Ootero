@@ -3,8 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { declarationSchema } from "../../validations/store.validation";
 import ItemFields from "./ItemFields";
 import { BadgeAlert, Loader2, X } from "lucide-react";
-import { useState } from "react";
-import { getAuspostDeclarations, updateAuspostDeclarations } from "../../services/store.api";
+import { useState, useEffect } from "react";
+import {
+  getAuspostDeclarations,
+  updateAuspostDeclarations,
+} from "../../services/store.api";
 import { toast } from "sonner";
 
 const inputClass =
@@ -14,6 +17,7 @@ const selectClass =
 
 export default function AddDeclarationModel({ onClose, storeId, onSaved }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const {
     register,
     control,
@@ -39,31 +43,54 @@ export default function AddDeclarationModel({ onClose, storeId, onSaved }) {
     control,
     name: "items",
   });
+  //! Fetch declaration
+  useEffect(() => {
+    const fetchDeclaration = async () => {
+      try {
+        setLoading(true);
+        const response = await getAuspostDeclarations(storeId);
+        const data = response.data.data || null;
+        reset(data);
+      } catch (error) {
+        const message =
+          error?.response?.data?.message || "Failed to fetch declaration";
+        toast.error(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDeclaration();
+  }, [storeId]);
 
+  //! Handle submit
   const onSubmit = async (data) => {
-  try {
-    setIsSubmitting(true);
-    //fetch existing declarations
-    const existingRes = await getAuspostDeclarations(storeId);
-    const existng = Array.isArray(existingRes.data.data) ? existingRes.data.data : [];
-
-    //update existing declarations
-    const updated = [...existng, data];
-    const updateRes = await updateAuspostDeclarations(storeId, { declarations: updated });
-    if (updateRes.status === 200 || updateRes.status === 201) {
-      toast.success(updateRes?.data?.message || "Declaration added successfully");
-      reset();
-      onClose();
-      onSaved();
-    }
+    try {
+      setIsSubmitting(true);
+      const response = await updateAuspostDeclarations(storeId, data);
+      if (response.status === 200) {
+        toast.success(
+          response?.data?.message || "Declaration saved successfully",
+        );
+        reset();
+        onClose();
+        onSaved();
+      }
     } catch (error) {
       const message =
-        error?.response?.data?.message || "Failed to add declaration";
+        error?.response?.data?.message || "Failed to save declaration";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  //! Loader
+  if (loading)
+    return (
+      <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 backdrop-blur-sm">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
 
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 backdrop-blur-sm">
@@ -245,7 +272,9 @@ export default function AddDeclarationModel({ onClose, storeId, onSaved }) {
               {/* Checkbox */}
               <label className="flex items-center gap-2">
                 <input type="checkbox" {...register("hasCommercialValue")} />
-                <span className="cursor-pointer text-sm font-medium text-gray-700">Has commercial value</span>
+                <span className="cursor-pointer text-sm font-medium text-gray-700">
+                  Has commercial value
+                </span>
               </label>
               {errors.hasCommercialValue && (
                 <p className="text-red-500 text-xs mt-1">
@@ -260,7 +289,6 @@ export default function AddDeclarationModel({ onClose, storeId, onSaved }) {
             {fields.map((field, index) => (
               <ItemFields
                 key={field.id}
-                
                 index={index}
                 register={register}
                 errors={errors}
@@ -287,7 +315,11 @@ export default function AddDeclarationModel({ onClose, storeId, onSaved }) {
                 disabled={isSubmitting}
                 className=" mt-2 px-6 h-9 flex items-center justify-center text-sm font-semibold bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700 transition-colors"
               >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Save"
+                )}
               </button>
             </div>
           </div>

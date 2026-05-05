@@ -92,20 +92,74 @@ export const auspostSettingSchema = z.object({
 });
 
 //! Shipping Rule Validation
-export const shippingRuleSchema = z.object({
-  rules: z
-    .array(
-      z.object({
-        ruleName: z.string().min(1, "Rule name is required"),
-        postageService: z.string().min(1, "Postage service is required"),
-        shippingMethod: z.string().min(1, "Shipping method is required"),
-      }),
-    )
-    .min(1, "At least one rule is required"),
-});
+export const shippingRuleSchema = z
+  .object({
+    rules: z
+      .array(
+        z.object({
+          ruleName: z.string().min(1, "Rule name is required"),
+          postageService: z.string().min(1, "Postage service is required"),
+          shippingMethod: z.string().min(1, "Shipping method is required"),
+        }),
+      )
+      .min(1, "At least one rule is required"),
+  })
+  .superRefine((data, ctx) => {
+    // Existing ruleName uniqueness
+    const seenRuleNames = new Map();
+  
+    // New postageService keyword uniqueness
+    const seenPostageKeywords = new Map();
+  
+    data.rules.forEach((rule, index) => {
+      // 1) Rule name unique check (keep your current logic)
+      const normalizedRuleName = rule.ruleName.trim().toLowerCase();
+      if (normalizedRuleName) {
+        if (seenRuleNames.has(normalizedRuleName)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["rules", index, "ruleName"],
+            message: "Rule name must be unique",
+          });
+        } else {
+          seenRuleNames.set(normalizedRuleName, index);
+        }
+      }
+  
+      // 2) Postage service keyword unique check
+      const keywords = rule.postageService
+        .split(",")
+        .map((k) => k.trim().toLowerCase())
+        .filter(Boolean);
+  
+      // Optional: detect duplicate keyword inside same row too
+      const seenInCurrentRow = new Set();
+  
+      for (const keyword of keywords) {
+        if (seenInCurrentRow.has(keyword)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["rules", index, "postageService"],
+            message: `Duplicate keyword "${keyword}" in same row`,
+          });
+          continue;
+        }
+        seenInCurrentRow.add(keyword);
+  
+        if (seenPostageKeywords.has(keyword)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["rules", index, "postageService"],
+            message: `Keyword "${keyword}" already used in another row`,
+          });
+        } else {
+          seenPostageKeywords.set(keyword, index);
+        }
+      }
+    });
+  });
 
 //! Package seeting validation
-
 export const packageSettingSchema = z
   .object({
     packages: z
@@ -132,8 +186,23 @@ export const packageSettingSchema = z
       message: "Exactly one package must be set as default",
       path: ["packages"],
     },
-  );
-
+  )
+  .superRefine((data, ctx) => {
+    const seen = new Map();
+    data.packages.forEach((pkg, index) => {
+      const normalized = pkg.name.trim().toLowerCase();
+      if (!normalized) return;
+      if (seen.has(normalized)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["packages", index, "name"],
+          message: "Package name must be unique",
+        });
+      } else {
+        seen.set(normalized, index);
+      }
+    });
+  });
 
 //! Declaration form validation
 //item component schema
@@ -150,7 +219,7 @@ export const itemSchema = z.object({
   reference: z.string().optional(),
 });
 
-//  declaration form schema
+// declaration form schema
 export const declarationSchema = z.object({
   itemDescription: z.string().min(1, "Item description is required"),
   reason: z.string().min(1),

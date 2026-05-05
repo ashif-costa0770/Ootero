@@ -407,22 +407,22 @@ export const getAuspostDeclarations = async (req, res) => {
       where: { storeId: storeId },
     });
 
-    let declarations = [];
-    if (auspost?.declarations != null && Array.isArray(auspost.declarations)) {
-      declarations = auspost.declarations;
+    let declaration = null;
+    if (auspost?.declarations != null) {
+      declaration = auspost.declarations;
     }
 
     return successResponse(
       res,
       200,
-      "Auspost declarations fetched successfully",
-      declarations,
+      "Declaration fetched successfully",
+      declaration,
     );
   } catch (error) {
     return errorResponse(
       res,
       500,
-      "Error in getting auspost declarations",
+      "Error in getting declaration",
       error.message,
     );
   }
@@ -433,7 +433,6 @@ export const updateAuspostDeclarations = async (req, res) => {
   try {
     const storeId = parseInt(req.params.storeId);
     const userId = req.user.id;
-    const { declarations } = req.body;
     
     //validate storeId
     if (isNaN(storeId)) {
@@ -465,19 +464,18 @@ export const updateAuspostDeclarations = async (req, res) => {
     //update the declarations
     await prisma.auspostSetting.update({
       where: { storeId },
-      data: { declarations: declarations },
+      data: { declarations: req.body },
     });
     return successResponse(
       res,
       200,
-      "Auspost declarations fetched successfully",
-      declarations,
+      "Declaration saved successfully",
     );
   } catch (error) {
     return errorResponse(
       res,
       500,
-      "Error in getting auspost declarations",
+      "Error in updating declaration",
       error.message,
     );
   }

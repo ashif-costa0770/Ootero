@@ -14,7 +14,6 @@ const ShippingRuleForm = ({ storeId }) => {
     register,
     control,
     handleSubmit,
-    getValues,
     reset,
     formState: { errors },
   } = useForm({
@@ -72,32 +71,7 @@ const ShippingRuleForm = ({ storeId }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  //! handle remove
-  const handleRemoveRule = async (index) => {
-    const rules = getValues("rules") ?? [];
-    const updated = rules.filter((_, i) => i !== index);
-  
-    if (updated.length === 0) {
-      toast.error("At least one shipping rule is required.");
-      return;
-    }
-  
-    try {
-      setLoading(true);
-      await updateAuspostShippingRules(storeId, { rules: updated });
-      reset({ rules: updated });
-      toast.success("Shipping rule removed");
-    } catch (error) {
-      const message =
-        error?.response?.data?.message ||
-        "Failed to remove shipping rule";
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };                           
+  };                       
 
   return (
     <form
@@ -169,7 +143,7 @@ const ShippingRuleForm = ({ storeId }) => {
                 <td className="border border-[#e0e0e0] px-4 py-3 text-center align-middle">
                   <button
                     type="button"
-                    onClick={() => handleRemoveRule(index)}
+                    onClick={ () => remove(index)}
                     disabled={fields.length === 1}
                     className="cursor-pointer inline-flex min-w-[5.5rem] items-center justify-center rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
