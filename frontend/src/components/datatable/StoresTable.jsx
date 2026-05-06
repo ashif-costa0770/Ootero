@@ -127,16 +127,19 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
               <td className="p-3 text-gray-500 cursor-pointer">
                 <div className="ml-6 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center relative group">
                   <span
-                      className="pointer-events-none absolute bottom-full z-70 mb-1 left-1/2 -translate-x-1/2 
+                    className="pointer-events-none absolute bottom-full z-70 mb-1 left-1/2 -translate-x-1/2 
                                  whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white 
                                  opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    >
-                      {`${store.user.firstName} ${store.user.lastName}`}
-                    </span>
-                  <User className="w-4 h-4 text-gray-500" />
-                 
+                  >
+                    {`${store.user.firstName} ${store.user.lastName}`}
+                  </span>
+                  <button
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/admin/profile/${store.user.id}`)}
+                  >
+                    <User className="w-4 h-4 text-gray-500" />
+                  </button>
                 </div>
-                
               </td>
               <td className="p-3 text-gray-500">
                 {new Date(store.createdAt).toISOString().slice(0, 10) +
@@ -161,7 +164,7 @@ const StoresTable = ({ stores, onToggleAutoSyncLocal }) => {
                     ) : (
                       <ArrowRight size={16} />
                     )}
-                   
+
                     <span
                       className="pointer-events-none absolute bottom-full z-70 mb-1 left-1/2 -translate-x-1/2 
                                  whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white 

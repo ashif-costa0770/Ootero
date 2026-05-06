@@ -6,6 +6,7 @@ import storeRoutes from "./routes/store.routes.js";
 import syncRoutes from "./routes/sync.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import productRoutes from "./routes/product.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
   });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/sync", syncRoutes);
 app.use("/api/orders", orderRoutes);

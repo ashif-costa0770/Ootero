@@ -129,10 +129,19 @@ const ShippingRuleForm = ({ storeId }) => {
                     className="w-full min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="">Choose Shipping Method</option>
-                    <option value="PARCEL POST + SIGNATURE">
-                      PARCEL POST + SIGNATURE
+                    <option value="International STANDARD/PACK & TRACK">
+                      International STANDARD/PACK & TRACK
                     </option>
-                    <option value="EXPRESS POST">EXPRESS POST</option>
+                    <option value="APGL NZ EXPRESS W/SIGNATURE">APGL NZ EXPRESS W/SIGNATURE</option>
+                    <option value="APGL NZ EXPRESS">APGL NZ EXPRESS</option>
+                    <option value="APGL WW WITH SIGNATURE">APGL WW WITH SIGNATURE</option>
+                    <option value="APGL WW">APGL WW</option>
+                    <option value="APGL CN EXPRESS WITH SIGNATURE">APGL CN EXPRESS WITH SIGNATURE</option>
+                    <option value="APGL CN WITH SIGNATURE">APGL CN WITH SIGNATURE</option>
+                    <option value="International EXPRESS MERCH">International EXPRESS MERCH</option>
+                    <option value="PARCEL POST + SIGNATURE">PARCEL POST + SIGNATURE</option>
+                    <option value="EXPRESS POST + SIGNATURE">EXPRESS POST + SIGNATURE</option>
+                  
                   </select>
                   {errors.rules?.[index]?.shippingMethod && (
                     <p className="mt-1 text-xs text-red-500">

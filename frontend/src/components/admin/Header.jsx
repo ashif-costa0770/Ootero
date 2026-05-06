@@ -14,15 +14,27 @@ import {
 } from "lucide-react";
 import SearchInput from "../common/SearchInput";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Header = ({ sidebarOpen, setSidebarOpen }) => {
   const [stores, setStores] = useState([]);
   const [selectedStoreId, setSelectedStoreId] = useState("");
   const [loadingStores, setLoadingStores] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const { storeId } = useParams();
   const showStoreDropdown = Boolean(storeId);
   const location = useLocation();
+  const { user } = useAuth();
+  const { logout } = useAuth();
+
+  //! Handle logout
+  const handleLogout = async () => {
+    await logout();
+    toast.success("Logged out successfully");
+    navigate("/login");
+  };
 
   //! Fetch stores
   useEffect(() => {
@@ -168,16 +180,58 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
               Todo items
             </span>
           </button>
-          <button className="relative bg-gray-200 p-2 border border-blue-400 cursor-pointer rounded-full group">
-            <User size={22} className=" text-gray-500" />
-            <span
-              className="pointer-events-none absolute top-full mt-5 left-1/2 -translate-x-1/2 
-               whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white 
-               opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className=" cursor-pointer w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center"
             >
-              Profile
-            </span>
-          </button>
+              <img
+                src={user?.profileImage || "https://placehold.net/avatar-2.png"}
+                alt="profile"
+                className="w-10 h-10 rounded-full"
+              />
+            </button>
+            {/* dropdown */}
+            {isDropdownOpen && (
+              <div
+                className="
+          absolute top-12 right-0 w-38 rounded-lg bg-white shadow-lg border border-gray-200
+          transition-all duration-200
+          overflow-hidden
+          z-50
+        "
+              >
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-gray-100 text-sm font-medium text-gray-700"
+                >
+                  <Link to={`/admin/profile/${user?.id}`}>My Profile</Link>
+                </button>
+
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-gray-100 text-sm font-medium text-gray-700"
+                >
+                  My Timesheets
+                </button>
+
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-gray-100 text-sm font-medium text-gray-700"
+                >
+                  Edit Profile
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-gray-100 text-sm font-medium text-red-500"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+
           <button className="relative  cursor-pointer rounded-full group">
             <Clock size={20} className=" text-gray-600" />
             <span

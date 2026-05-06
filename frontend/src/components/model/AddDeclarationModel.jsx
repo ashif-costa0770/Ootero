@@ -141,8 +141,10 @@ export default function AddDeclarationModel({ onClose, storeId, onSaved }) {
                 <span className="text-red-500">*</span>
               </label>
               <select {...register("reason")} className={selectClass}>
-                <option value="GIFT">Gift</option>
-                <option value="SALE">Sale</option>
+                <option value="">Select reason</option>
+                <option value="GIFT">GIFT</option>
+                <option value="COMMERCIAL">COMMERCIAL</option>
+                <option value="SAMPLE">SAMPLE</option>
               </select>
               {errors.reason && (
                 <p className="text-red-500 text-xs mt-1">

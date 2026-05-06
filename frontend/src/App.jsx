@@ -21,6 +21,7 @@ import Payloads from "./pages/admin/Payloads";
 import Stores from "./pages/admin/Stores";
 import CreateLabel from "./pages/admin/CreateLabel";
 import StoreSettings from "./pages/admin/StoreSettings";
+import UserProfile from "./pages/admin/UserProfile";
 function App() {
   return (
     <>
@@ -53,6 +54,7 @@ function App() {
             <Route path="woocommerce/payloads" element={<Payloads />} />
             <Route path="stores" element={<Stores />} />
             <Route path="stores/:storeId/settings" element={<StoreSettings />} />
+            <Route path="profile/:userId" element={<UserProfile />} />
           </Route>
         </Route>
 

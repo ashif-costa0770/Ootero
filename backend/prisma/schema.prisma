@@ -39,6 +39,17 @@ enum YesNoEnum {
   YES
   NO
 }
+enum TwoFactorTypeEnum {
+  DISABLED
+  EMAIL
+  GOOGLE
+}
+
+enum DirectionEnumEnum {
+  LTR
+  RTL
+  SYSTEM
+}
 
 model User {
   id                 Int                  @id @default(autoincrement())
@@ -47,13 +58,26 @@ model User {
   email              String               @unique
   phone              String?
   password           String
+  profileImage       String?
+
   country            String?
   company            String?
   shipmentRange      String?
+  direction          DirectionEnumEnum   @default(SYSTEM)
+
+  facebook           String?
+  linkedIn           String?
+  skype              String?
+
+  twoFactorType      TwoFactorTypeEnum    @default(DISABLED)
+
+
   role               Role                 @default(USER)
   isVerified         Boolean              @default(false)
   verificationToken  String?
   createdAt          DateTime             @default(now())
+  
+
   PasswordResetToken PasswordResetToken[]
   Store              Store[]
 
