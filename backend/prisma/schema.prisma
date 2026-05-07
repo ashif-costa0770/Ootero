@@ -68,6 +68,7 @@ model User {
   facebook           String?
   linkedIn           String?
   skype              String?
+  emailSignature     String?
 
   twoFactorType      TwoFactorTypeEnum    @default(DISABLED)
 
@@ -75,6 +76,7 @@ model User {
   role               Role                 @default(USER)
   isVerified         Boolean              @default(false)
   verificationToken  String?
+  lastPasswordChange DateTime?
   createdAt          DateTime             @default(now())
   
 

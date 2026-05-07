@@ -219,7 +219,7 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
                   onClick={() => setIsDropdownOpen(false)}
                   className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-gray-100 text-sm font-medium text-gray-700"
                 >
-                  Edit Profile
+                  <Link to={`/admin/profile/${user?.id}/edit`}>Edit Profile</Link>
                 </button>
 
                 <button

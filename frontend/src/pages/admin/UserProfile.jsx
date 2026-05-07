@@ -9,12 +9,15 @@ import {
   ChevronUp,
   ChevronDown,
   Phone,
+  Edit,
 } from "lucide-react";
 import { getUserProfile } from "../../services/user.api";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const UserProfile = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -94,6 +97,7 @@ const UserProfile = () => {
           <div className="rounded-md border border-gray-200 bg-white shadow-sm">
             <div className="px-6 py-4">
               {/* user */}
+              <div className="flex justify-between items-center">
               <div className="flex items-center gap-2 -ms-1">
                 <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
 
@@ -103,6 +107,12 @@ const UserProfile = () => {
                 <h2 className="text-xl font-semibold text-gray-700">
                   {fullName}
                 </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => navigate(`/admin/profile/${userId}/edit`)} className=" cursor-pointer rounded-md border border-gray-200 p-2 text-gray-700 hover:bg-slate-100">
+                  <Edit size={16} />
+                </button>
+              </div>
               </div>
 
               {/* email */}

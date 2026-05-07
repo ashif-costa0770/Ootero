@@ -1,5 +1,3 @@
-// validations/user.validation.js
-
 import { z } from "zod";
 
 //! Update User Profile Validation
@@ -55,6 +53,7 @@ export const updateUserSchema = z.object({
     .optional()
     .or(z.literal("")),
 });
+
 
 //! Change Password Validation
 export const changePasswordSchema = z.object({
